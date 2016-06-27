@@ -17,10 +17,9 @@ android {
     defaultConfig {
         applicationId "com.snd.semiprime"
         minSdkVersion 8
-        targetSdkVersion 23
+        targetSdkVersion 24
     }
     dexOptions {
-        incremental false
     }
 }
 // called every time gradle gets executed, takes the native dependencies of
