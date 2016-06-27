@@ -1,7 +1,7 @@
 task copyNatives << {
     file("xcode/native/ios/").mkdirs();
     def LD_FLAGS = "LIBGDX_NATIVES = "
-    configurations.natives.files.each { jar->
+    configurations.natives.files.each { jar ->
         def outputDir = null
         if (jar.name.endsWith("natives-ios.jar")) outputDir = file("xcode/native/ios")
         if (outputDir != null) {
@@ -28,17 +28,13 @@ task copyNatives << {
         }
     }
 }
-
 task createBuildDir {
     def file = new File('build/xcode/ios-moe.xcodeproj')
     if (!file.exists()) {
         file.mkdirs();
     }
 }
-
-sourceSets.main.java.srcDirs = [ "src/" ]
-
-
+sourceSets.main.java.srcDirs = ["src/"]
 moe {
     mainClassName 'IOSMoeLauncher'
     xcode {
@@ -49,8 +45,9 @@ moe {
         generateProject false
     }
 }
-
 moeMainReleaseIphoneosXcodeBuild.dependsOn copyNatives
 moeMainDebugIphoneosXcodeBuild.dependsOn copyNatives
 moeMainReleaseIphonesimulatorXcodeBuild.dependsOn copyNatives
 moeMainDebugIphonesimulatorXcodeBuild.dependsOn copyNatives
+dependencies {
+}
