@@ -1,9 +1,5 @@
 package com.snd.semiprime;
 
-import com.snd.semiprime.Heuristic;
-import com.snd.semiprime.Log;
-import com.snd.semiprime.Solver;
-
 import java.io.File;
 import java.io.PrintWriter;
 import java.math.BigInteger;
@@ -232,7 +228,7 @@ public class Test
   public static void main(String[] args)
   {
     try { new File(testDir).mkdir(); } catch (Throwable ignored) {}
-    if (!semiprimes(4096, 100)) System.exit(1);
+    if (!semiprimes(1024, 100)) System.exit(1);
     //if (!heuristics(20, 30, 10, Heuristic.values())) System.exit(2);
   }
 }

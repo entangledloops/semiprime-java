@@ -23,6 +23,8 @@ import java.util.prefs.Preferences;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static com.snd.semiprime.Solver.pLength;
+
 /**
  * @author Stephen Dunn
  * @since November 1, 2015
@@ -114,8 +116,8 @@ public class ClientGui extends JFrame implements DocumentListener
 
   private static final int DEFAULT_SEMIPRIME_BASE = 10;
   private static final int DEFAULT_INTERNAL_BASE  = Solver.internalBase();
-  private static final int DEFAULT_P1_LEN         = Solver.pLen2();
-  private static final int DEFAULT_P2_LEN         = Solver.qLen2();
+  private static final int DEFAULT_P1_LEN         = Solver.pLength();
+  private static final int DEFAULT_P2_LEN         = Solver.qLength();
   private static final int DEFAULT_PROCESSORS     = Solver.processors();
   private static final int DEFAULT_PROCESSOR_CAP  = Solver.processorCap();
   private static final int DEFAULT_MEMORY_CAP     = Solver.memoryCap();
@@ -632,8 +634,8 @@ public class ClientGui extends JFrame implements DocumentListener
           final int len1 = Integer.parseInt(txtP1Len.getText().trim());
           if (len1 >= 0)
           {
-            Solver.pLength(len1); Solver.qLen2(0 != len1 ? getSemiprimeLen() - len1 : 0);
-            txtP2Len.setText(""+Solver.qLen2());
+            pLength(len1); Solver.qLength(0 != len1 ? getSemiprimeLen() - len1 : 0);
+            txtP2Len.setText(""+Solver.qLength());
           }
         }
         catch (Throwable ignored) {}
@@ -642,7 +644,7 @@ public class ClientGui extends JFrame implements DocumentListener
 
     txtP2Len = getNumberTextField("0");
     txtP2Len.setToolTipText(primeLengthHelp);
-    txtP2Len.addActionListener((e) -> { try { Solver.qLen2(Integer.parseInt(txtP2Len.getText().trim())); } catch (Throwable ignored) {} });
+    txtP2Len.addActionListener((e) -> { try { Solver.qLength(Integer.parseInt(txtP2Len.getText().trim())); } catch (Throwable ignored) {} });
 
     final JButton btnReset = getButton("Reset to Defaults");
     btnReset.setToolTipText("This will reset the search settings to defaults (w/o clearing the current semiprime value).");
@@ -734,7 +736,7 @@ public class ClientGui extends JFrame implements DocumentListener
 
         // try to parse any fixed prime lengths
         try { Solver.pLength(Integer.parseInt(clean(txtP1Len.getText()))); } catch (Throwable t) { throw new NullPointerException("prime 1 len invalid"); }
-        try { Solver.qLen2(Integer.parseInt(clean(txtP2Len.getText()))); } catch (Throwable t) { throw new NullPointerException("prime 2 len invalid"); }
+        try { Solver.qLength(Integer.parseInt(clean(txtP2Len.getText()))); } catch (Throwable t) { throw new NullPointerException("prime 2 len invalid"); }
 
         // grab the semiprime options
         int spBase = DEFAULT_SEMIPRIME_BASE;
@@ -1434,8 +1436,8 @@ public class ClientGui extends JFrame implements DocumentListener
     chkWriteCsv.setSelected(null != Solver.csv());
 
     txtInternalBase.setText(""+Solver.internalBase());
-    txtP1Len.setText(""+Solver.pLen2());
-    txtP2Len.setText(""+Solver.qLen2());
+    txtP1Len.setText(""+Solver.pLength());
+    txtP2Len.setText(""+Solver.qLength());
   }
 
   private void updateSettings()

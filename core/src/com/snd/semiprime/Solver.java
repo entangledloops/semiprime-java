@@ -48,8 +48,8 @@ public class Solver implements Runnable, Serializable
   private static final AtomicInteger memoryCap        = new AtomicInteger(100); ///< percentage use allowed
 
   // target info
-  private static final AtomicInteger pLen         = new AtomicInteger(0); ///< optional: if set, only primes w/this len will be searched for
-  private static final AtomicInteger qLen         = new AtomicInteger(0); ///< using 0 searches for all length possibilities
+  private static final AtomicInteger pLength      = new AtomicInteger(0); ///< optional: if set, only primes w/this len will be searched for
+  private static final AtomicInteger qLength      = new AtomicInteger(0); ///< using 0 searches for all length possibilities
   private static final AtomicInteger internalBase = new AtomicInteger(2); ///< the base that will be used internally for the search representation
 
   // global stats
@@ -126,7 +126,7 @@ public class Solver implements Runnable, Serializable
   private final int    cacheSSetBits; ///< cached internal len
 
   // state cache
-  private final int     cacheMaxDepth; ///< max(pLen, qLen)
+  private final int     cacheMaxDepth; ///< max(pLength, qLength)
   private final int     cacheProcessors;
   private final boolean cacheNetworkSearch;
   private final boolean cacheNetworkHost;
@@ -160,8 +160,8 @@ public class Solver implements Runnable, Serializable
       cacheSLen2 = cacheS.bitLength();
       cacheSLen10 = cacheSString10.length();
       cacheSSetBits = cacheS.bitCount();
-      cachePLen2 = pLen2();
-      cacheQLen2 = qLen2();
+      cachePLen2 = pLength();
+      cacheQLen2 = qLength();
       cacheProcessors = Math.max(0, Math.min(Runtime.getRuntime().availableProcessors(), processors()));
       cacheSSetBitsOverLen2 = (double) cacheSSetBits / (double) cacheSLen2;
       cacheMaxDepth = (0 < cachePLen2 || 0 < cacheQLen2 ? Math.max(cachePLen2, cacheQLen2) : (cacheSLen2 -1)) - 1;  // -1 converts len -> depth, second -1 on spLen is multiplication logic
@@ -518,13 +518,13 @@ public class Solver implements Runnable, Serializable
   public static int internalBase() { return internalBase.get(); }
   public static void internalBase(int base) { internalBase.set(base); }
 
-  public static int pLen2() { return pLen.get(); }
-  public static void pLength(int len) { if (len < 0) Log.e("invalid len: " + len); else pLen.set(len); }
+  public static int pLength() { return pLength.get(); }
+  public static void pLength(int len) { if (len < 0) Log.e("invalid len: " + len); else pLength.set(len); }
 
-  public static int qLen2() { return qLen.get(); }
-  public static void qLen2(int len) { if (len < 0) Log.e("invalid len: " + len); else qLen.set(len); }
+  public static int qLength() { return qLength.get(); }
+  public static void qLength(int len) { if (len < 0) Log.e("invalid len: " + len); else qLength.set(len); }
 
-  public static boolean primeLengthsFixed() { return 0 != pLen2() && 0 != qLen2(); }
+  public static boolean primeLengthsFixed() { return 0 != pLength() && 0 != qLength(); }
 
   public static boolean stats() { return Solver.stats.get(); }
   public static void stats(boolean enabled) { Solver.stats.set(enabled); }
