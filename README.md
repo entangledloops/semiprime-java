@@ -1,13 +1,15 @@
-#### [Download the Semiprime Factorization Client (latest stable)](https://github.com/entangledloops/semiprime/blob/master/build/semiprime-client.jar?raw=true) ####
-
-#### [Download the Semiprime Factorization Server (latest stable)](https://github.com/entangledloops/semiprime/blob/master/build/semiprime-server.jar?raw=true) ####
-
-#### [View Semiprime Factorization Server Status](https://semiprime.azurewebsites.net) ####
+## Downloads ##
 
 Build from source if you want the very latest. Use the stable build above if you experience any issues.
 
 You do **not** need the server unless you are attempting to run a private distributed key factorization. 
 The client is capable of running a local factorization as well as contribute to the current global factorization effort, so this may be enough for your own needs.
+
+#### [Download the Semiprime Factorization Client (latest stable)](https://github.com/entangledloops/semiprime/blob/master/build/semiprime-client.jar?raw=true) ####
+
+#### [Download the Semiprime Factorization Server (latest stable)](https://github.com/entangledloops/semiprime/blob/master/build/semiprime-server.jar?raw=true) ####
+
+#### [View Global Semiprime Factorization Server Status](https://semiprime.azurewebsites.net) ####
 
 ## What is this? ##
 
