@@ -1,6 +1,13 @@
-#### [Download the Semiprime Factorization Client (v0.4.7a)](https://github.com/entangledloops/semiprime/blob/master/build/semiprime-client.jar?raw=true) ####
+#### [Download the Semiprime Factorization Client (latest stable)](https://github.com/entangledloops/semiprime/blob/master/build/semiprime-client.jar?raw=true) ####
+
+#### [Download the Semiprime Factorization Server (latest stable)](https://github.com/entangledloops/semiprime/blob/master/build/semiprime-server.jar?raw=true) ####
+
+#### [View Semiprime Factorization Server Status](https://semiprime.azurewebsites.net) ####
 
 Build from source if you want the very latest. Use the stable build above if you experience any issues.
+
+You do **not** need the server unless you are attempting to run a private distributed key factorization. 
+The client is capable of running a local factorization as well as contribute to the current global factorization effort, so this may be enough for your own needs.
 
 ## What is this? ##
 
@@ -8,7 +15,7 @@ This software attempts to factor semiprimes into their prime factors via heurist
 
 You can read about how this works on the [Semiprime Factorization Wiki](https://github.com/entangledloops/heuristicSearch/wiki/Semiprime-Factorization).
 
-You can also host your own server by running the latest [Semiprime Factorization Server](https://semiprime.azurewebsites.net).
+
 
 ## Screenshots ##
 
