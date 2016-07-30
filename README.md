@@ -17,7 +17,7 @@ The client is capable of running a local factorization as well as contribute to 
 
 This software attempts to factor a semiprime (typically a public key, such as RSA) into its prime factors (reproducing the private key) using heuristic search methods. 
 
-The client can be used to either contribute toward the current public cloud search effort or a local search hosted on a private server.
+The client can be used to either contribute toward an [ongoing cloud effort](https://semiprime.azurewebsites.net) or a local search hosted on a private server.
 
 ## Screenshots ##
 
