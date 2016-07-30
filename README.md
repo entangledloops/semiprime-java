@@ -35,7 +35,7 @@ If you want to build from source, you'll need at least [Java 1.8 JRE](http://www
 
 Pull this git repo:
 
-`git clone https://github.com/entangledloops/heuristicSearch/SemiprimeFactor.git`
+`git clone https://github.com/entangledloops/semiprime/semiprime.git`
 
 Open a command prompt/terminal in the SemiprimeFactor subdirectory.
 To run the client:
