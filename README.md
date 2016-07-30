@@ -1,4 +1,4 @@
-#### [Wiki](https://github.com/entangledloops/heuristicSearch/wiki/Semiprime-Factorization) ####
+## [Wiki](https://github.com/entangledloops/heuristicSearch/wiki/Semiprime-Factorization) ##
 
 ## Downloads ##
 
