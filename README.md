@@ -15,7 +15,9 @@ The client is capable of running a local factorization as well as contribute to 
 
 ## What is this? ##
 
-This software attempts to factor semiprimes into their prime factors via heuristic search. The client is for contributing to the current search being hosted on my personal server or running a local search on your own machine.
+This software attempts to factor a semiprime (typically a public key, such as RSA) into its prime factors using heuristic search methods. 
+
+The client can be used to either contribute toward the current public cloud search effort or a local search hosted on a private server.
 
 ## Screenshots ##
 
