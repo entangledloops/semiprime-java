@@ -8,7 +8,7 @@
 
 #### [View Global Semiprime Factorization Server Status](https://semiprime.azurewebsites.net) ####
 
-Build from source if you want the very latest. Use the stable build above if you experience any issues.
+Build from source if you want the very latest.
 
 You do **not** need the server unless you are attempting to run a private distributed key factorization. 
 The client is capable of running a local factorization as well as contribute to the current global factorization effort, so this may be enough for your own needs.
