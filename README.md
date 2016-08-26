@@ -53,6 +53,7 @@ To run the client:
 **Other tasks available:**
 
 `desktop:server` - hosts a server
+
 `wrapper` - updates gradle wrapper 
 
 Be sure to run `createWrapper` from the parent directory so gradle files can be overwritten. A copy of gradle w/only this task is provided in the `heuristicSearch` dir to make this easier for you.
