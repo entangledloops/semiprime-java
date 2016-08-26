@@ -1,1 +1,8 @@
-include 'desktop', 'android', 'ios', 'html', 'core', 'ios-moe'
+import org.apache.tools.ant.taskdefs.condition.Os
+
+include 'desktop', 'android', 'html', 'core'
+
+if (Os.isFamily(Os.FAMILY_MAC))
+{
+  include 'ios', 'ios-moe'
+}

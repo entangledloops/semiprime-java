@@ -21,7 +21,13 @@ import java.util.stream.Stream;
  */
 public class Solver implements Runnable, Serializable
 {
-  public static final String VERSION = "0.4.7a";
+  public static final String BUILD_NUMBER = "1019";
+  public static final String VERSION =
+      new StringBuilder( new StringBuilder(BUILD_NUMBER).reverse().toString().substring(3) ).reverse().toString() + "." +
+      BUILD_NUMBER.charAt(BUILD_NUMBER.length()-3) + "." +
+      BUILD_NUMBER.charAt(BUILD_NUMBER.length()-2) + "." +
+      BUILD_NUMBER.charAt(BUILD_NUMBER.length()-1)
+      ;
 
   /// default handler for thread exceptions
   private static final Thread.UncaughtExceptionHandler handler = (thread,t) -> Log.e(t);

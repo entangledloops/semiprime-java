@@ -1,8 +1,10 @@
 apply plugin: "java"
+
 sourceCompatibility = project.javaSourceVersion
 sourceSets.main.java.srcDirs = ["src/"]
-project.ext.mainClassName = "com.snd.semiprime.desktop.DesktopLauncher"
+project.ext.mainClassName = "com.snd.semiprime.client.Client"
 project.ext.assetsDir = new File("../android/assets");
+
 task run(dependsOn: classes, type: JavaExec) {
     main = project.mainClassName
     classpath = sourceSets.main.runtimeClasspath
@@ -10,23 +12,64 @@ task run(dependsOn: classes, type: JavaExec) {
     workingDir = project.assetsDir
     ignoreExitValue = true
 }
-task dist(type: Jar) {
+
+task client(type: Jar) {
     from files(sourceSets.main.output.classesDir)
     from files(sourceSets.main.output.resourcesDir)
     from { configurations.compile.collect { zipTree(it) } }
     from files(project.assetsDir);
 
+    archiveName = "client-" + archiveName
+    destinationDir(file("../build"))
+
     manifest {
-        attributes 'Main-Class': project.mainClassName
+        attributes 'Main-Class': "com.snd.semiprime.client.Client"
+    }
+
+    doLast {
+        project.copy {
+            from '../build'
+            into new File('../build')
+            include archiveName
+            rename archiveName, 'semiprime-client.jar'
+        }
     }
 }
-dist.dependsOn classes
+
+client.dependsOn classes
+
+task server(type: Jar) {
+    from files(sourceSets.main.output.classesDir)
+    from files(sourceSets.main.output.resourcesDir)
+    from { configurations.compile.collect { zipTree(it) } }
+    from files(project.assetsDir);
+
+    archiveName = "server-" + archiveName
+    destinationDir(file("../build"))
+
+    manifest {
+        attributes 'Main-Class': "com.snd.semiprime.server.Server"
+    }
+
+    doLast {
+        project.copy {
+            from '../build'
+            into new File('../build')
+            include archiveName
+            rename archiveName, 'semiprime-server.jar'
+        }
+    }
+}
+
+server.dependsOn classes
+
 eclipse {
     project {
         name = appName + "-desktop"
         linkedResource name: 'assets', type: '2', location: 'PARENT-1-PROJECT_LOC/android/assets'
     }
 }
+
 task afterEclipseImport(description: "Post processing after project generation", group: "IDE") {
     doLast {
         def classpath = new XmlParser().parse(file(".classpath"))
@@ -37,5 +80,6 @@ task afterEclipseImport(description: "Post processing after project generation",
         printer.print(classpath)
     }
 }
+
 dependencies {
 }

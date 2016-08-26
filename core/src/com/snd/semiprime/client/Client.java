@@ -226,6 +226,16 @@ public class Client
 
   public static void main(String[] args)
   {
-    new ClientGui();
+    // set arg default states
+    boolean headless = false;
+
+    // parse args
+    for (String arg : args)
+    {
+      if (arg.toLowerCase().contains("headless")) headless = true;
+    }
+
+    // take appropriate action based on args
+    if (!headless) new ClientGui();
   }
 }

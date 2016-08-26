@@ -1,16 +1,33 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 buildscript {
+
+    project.ext {
+
+        buildNumber = file('build.number').getText('UTF-8').split("build\\.number=")[1].trim()
+
+    }
+
     repositories {
         mavenLocal()
         mavenCentral()
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
         jcenter()
-        maven { url uri(System.getenv("INTEL_MULTI_OS_ENGINE_HOME") + "/gradle") }
+
+        if (Os.isFamily(Os.FAMILY_MAC))
+        {
+            maven { url uri(System.getenv("INTEL_MULTI_OS_ENGINE_HOME") + "/gradle") }
+        }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.0-alpha4'
-        classpath 'com.mobidevelop.robovm:robovm-gradle-plugin:2.1.0'
-        classpath 'com.intel.gradle:moeGradlePlugin:1.1.0.final-1'
+        classpath 'com.android.tools.build:gradle:2.2.0-beta2'
         classpath 'de.richsource.gradle.plugins:gwt-gradle-plugin:0.6'
+
+        if (Os.isFamily(Os.FAMILY_MAC))
+        {
+            classpath 'com.mobidevelop.robovm:robovm-gradle-plugin:2.1.0'
+            classpath 'com.intel.gradle:moeGradlePlugin:1.1.0.final-1'
+        }
     }
 }
 
@@ -21,17 +38,26 @@ def getDateTimeStamp() {
     return dateTimeStamp
 }
 
-allprojects {
-    apply plugin: "eclipse"
-    apply plugin: "idea"
 
-    version = '1.0'
+// this externally defined maven task will stamp the current build number into several relevant files
+// to use, run: gradlew versionUpdate. you should add this to your build config as an ant build
+// task that occurs pre-compile time to ensure your build has the correct stamp before executing
+ant.importBuild 'build.xml'
+subprojects {
+    tasks.all({ dependsOn versionUpdate })
+}
+
+allprojects {
+    apply plugin: "idea"
+    apply plugin: "eclipse"
+
+    version = project.buildNumber + '.' + getDateTimeStamp()
     ext {
         appName = "semiprime"
-        gradleVersion = '2.14'
+        gradleVersion = '3.0'
         javaSourceVersion = '1.8'
-        gdxVersion = '1.9.3'
-        roboVMVersion = '2.1.0'
+        gdxVersion = '1.9.4'
+        roboVMVersion = '2.2.0'
         box2DLightsVersion = '1.4'
         ashleyVersion = '1.7.0'
         aiVersion = '1.8.0'
@@ -74,9 +100,9 @@ task wrapper(type: Wrapper) {
 project(":desktop") {
     apply plugin: "java"
 
-
     dependencies {
         compile project(":core")
+
         compile "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
         compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
 
@@ -85,12 +111,13 @@ project(":desktop") {
 }
 
 project(":android") {
-    apply plugin: "android"
+    apply plugin: "com.android.application"
 
     configurations { natives }
 
     dependencies {
         compile project(":core")
+
         compile "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
         natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi"
         natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a"
@@ -102,19 +129,38 @@ project(":android") {
     }
 }
 
-project(":ios") {
-    apply plugin: "java"
-    apply plugin: "robovm"
+if (Os.isFamily(Os.FAMILY_MAC))
+{
+    project(":ios") {
+        apply plugin: "java"
+        apply plugin: "robovm"
 
 
-    dependencies {
-        compile project(":core")
-        compile "com.mobidevelop.robovm:robovm-rt:$roboVMVersion"
-        compile "com.mobidevelop.robovm:robovm-cocoatouch:$roboVMVersion"
-        compile "com.badlogicgames.gdx:gdx-backend-robovm:$gdxVersion"
-        compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-ios"
+        dependencies {
+            compile project(":core")
 
-        compile fileTree(dir: "libs", include: "*.jar")
+            compile "com.mobidevelop.robovm:robovm-rt:$roboVMVersion"
+            compile "com.mobidevelop.robovm:robovm-cocoatouch:$roboVMVersion"
+            compile "com.badlogicgames.gdx:gdx-backend-robovm:$gdxVersion"
+            compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-ios"
+
+            compile fileTree(dir: "libs", include: "*.jar")
+        }
+    }
+
+    project(":ios-moe") {
+        apply plugin: "moe"
+
+        configurations { natives }
+
+        dependencies {
+            compile project(":core")
+
+            compile "com.badlogicgames.gdx:gdx-backend-moe:$gdxVersion"
+            natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-ios"
+
+            compile fileTree(dir: "libs", include: "*.jar")
+        }
     }
 }
 
@@ -122,9 +168,9 @@ project(":html") {
     apply plugin: "gwt"
     apply plugin: "war"
 
-
     dependencies {
         compile project(":core")
+
         compile "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion"
         compile "com.badlogicgames.gdx:gdx:$gdxVersion:sources"
         compile "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion:sources"
@@ -143,20 +189,6 @@ project(":core") {
 
     dependencies {
         compile "com.badlogicgames.gdx:gdx:$gdxVersion"
-
-        compile fileTree(dir: "libs", include: "*.jar")
-    }
-}
-
-project(":ios-moe") {
-    apply plugin: "moe"
-
-    configurations { natives }
-
-    dependencies {
-        compile project(":core")
-        compile "com.badlogicgames.gdx:gdx-backend-moe:$gdxVersion"
-        natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-ios"
 
         compile fileTree(dir: "libs", include: "*.jar")
     }

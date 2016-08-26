@@ -226,9 +226,6 @@ public class ClientGui extends JFrame implements DocumentListener
       Log.e("failed to create the app window");
       return;
     }
-
-    setVisible(true);
-    toFront();
   }
 
   private void resetFrame()
@@ -421,10 +418,6 @@ public class ClientGui extends JFrame implements DocumentListener
       }
       catch (Throwable ignored) {} // don't care what went wrong with gui update, it's been logged anyway
     });
-
-    Log.o("<center><pre>(Thank you)<sup>2048</sup> for helping my research!</pre></center>" +
-        "<br>If you're computer cracks a target number, you will be credited in the publication (assuming you provided an email I can reach you at)." +
-        "<br>If you're interested in learning exactly what this software does and why, checkout the \"About\" menu.");
 
     final JScrollPane pneHistory = new JScrollPane(txtLog);
     txtLog.setHighlighter(new DefaultHighlighter());
@@ -1085,8 +1078,23 @@ public class ClientGui extends JFrame implements DocumentListener
     // on close, kill the server connection if there is no tray icon in use
     if (!useTray) addWindowListener(new WindowAdapter() { @Override public void windowClosing(WindowEvent e) { exit(); } });
 
+    // show the gui
+    setVisible(true);
+    toFront();
+
     // attempt to load stored settings
+    Log.disable();
     loadSettings();
+    Log.enable();
+
+    // show greeting
+    Log.o(
+        "<h3>(Thank you)<sup>2048</sup> for helping my research!</h3>" +
+        "<br>" +
+        "If you're computer cracks a target number, you will be credited in the publication (assuming you provided an email I can reach you at)." +
+        "<br>" +
+        "If you're interested in learning exactly what this software does and why, checkout the \"About\" menu."
+    );
 
     // collect garbage and report memory info
     runtime.gc();
@@ -1409,7 +1417,6 @@ public class ClientGui extends JFrame implements DocumentListener
 
     Log.o("cpu settings loaded");
   }
-
 
   private void loadSettings()
   {

@@ -44,20 +44,15 @@ To run the client:
 
 `chmod +x gradlew`
 
-`./gradlew run`
+`./gradlew desktop:client`
 
 **Windows:**
 
-`gradlew run`
+`gradlew desktop:client`
 
 **Other tasks available:**
 
-`runServer` - run a local server
-
-`dist` - build the client jar
-
-`distServer` - build the server jar
-
-`createWrapper` - updates gradle wrapper 
+`desktop:server` - hosts a server
+`wrapper` - updates gradle wrapper 
 
 Be sure to run `createWrapper` from the parent directory so gradle files can be overwritten. A copy of gradle w/only this task is provided in the `heuristicSearch` dir to make this easier for you.
