@@ -22,7 +22,7 @@ import java.util.stream.Stream;
  */
 public class Solver implements Runnable, Serializable
 {
-  public static final String BUILD_NUMBER = "1055";
+  public static final String BUILD_NUMBER = "1056";
   public static final String VERSION =
       new StringBuilder( new StringBuilder(BUILD_NUMBER).reverse().toString().substring(3) ).reverse().toString() + "." +
       BUILD_NUMBER.charAt(BUILD_NUMBER.length()-3) + "." +
@@ -440,7 +440,7 @@ public class Solver implements Runnable, Serializable
   private String statsToString(boolean detailed)
   {
     final long elapsedNanos = System.nanoTime() - startTime;
-    final long millis = elapsedNanos / 1000000000L;
+    final long millis = elapsedNanos / 1000000L;
     final long seconds = millis / 1000L;
     final long minutes = seconds / 60L;
     final long hours = minutes / 60L;
