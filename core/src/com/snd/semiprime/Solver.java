@@ -5,6 +5,7 @@ import com.snd.semiprime.client.Client;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.math.BigInteger;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -21,7 +22,7 @@ import java.util.stream.Stream;
  */
 public class Solver implements Runnable, Serializable
 {
-  public static final String BUILD_NUMBER = "1019";
+  public static final String BUILD_NUMBER = "1055";
   public static final String VERSION =
       new StringBuilder( new StringBuilder(BUILD_NUMBER).reverse().toString().substring(3) ).reverse().toString() + "." +
       BUILD_NUMBER.charAt(BUILD_NUMBER.length()-3) + "." +
@@ -181,7 +182,7 @@ public class Solver implements Runnable, Serializable
       cacheStatsPeriodMillis = statsPeriodMillis;
       cacheCheckForWorkTimeout = checkForWorkTimeout;
       cacheCheckForWorkTimeUnit = checkForWorkTimeUnit;
-      cacheCallback = callback(); if (null == cacheCallback) throw new NullPointerException("no callback provided for search completion");
+      cacheCallback = callback();
 
       // cache selected heuristics for this run
       cacheHeuristics = new Heuristic[ Solver.heuristics.size() ]; int i = -1;
@@ -193,11 +194,12 @@ public class Solver implements Runnable, Serializable
     }
     catch (Throwable t) { Log.e(t); throw new NullPointerException("cache preparation failure"); }
 
-    // build worker threads to search until goal is found or no nodes left
+    // if we are the search host, build worker threads to search until goal is found or no nodes left
     if (cacheNetworkHost)
     {
       threads.add(new Thread(() -> { try { while (null == goal() && solving() && !Thread.interrupted()) Thread.sleep(1000); } catch (Throwable ignored) {} }));
     }
+    // otherwise we are either a local or network search client, prepare workers
     else
     {
       IntStream.range(1, cacheProcessors+1).forEach((i) -> threads.add(new Thread(() ->
@@ -206,9 +208,9 @@ public class Solver implements Runnable, Serializable
         {
           Log.o("thread " + i + ": started");
           while (expand( pop() )) { while (cachePaused) Thread.sleep(100); }
-          Log.o("thread " + i + ": finished");
         }
         catch (Throwable ignored) {}
+        finally { Log.o("thread " + i + ": finished"); }
       })));
 
       // if networked search, prepare special network sync thread
@@ -283,14 +285,15 @@ public class Solver implements Runnable, Serializable
         final Timer timer = new Timer();
         if (!statsTimer.compareAndSet(null, timer)) { Log.e("overlapping search request"); return; }
         startTime = System.nanoTime();
-        timer.schedule(new TimerTask() { @Override public void run() { if (cachePaused) return; Log.o("progress:" + statsToString(cacheDetailedStats)); } }, statsPeriodMillis, statsPeriodMillis);
+        timer.schedule(new TimerTask() { @Override public void run() { if (cachePaused) return; Log.o( statsToString(cacheDetailedStats) ); } }, statsPeriodMillis, statsPeriodMillis);
       }
 
       // launch all worker threads and wait for completion
-
-      threads.stream().forEach(thread -> thread.setUncaughtExceptionHandler(handler));
-      try { threads.stream().forEach(Thread::start); try { threads.stream().forEach((thread) -> { try { thread.join(); } catch (Throwable t) { Log.e("solving start interrupted", t); } }); } catch (Throwable ignored) {} } catch (Throwable t) { Log.e(t); }
-      try { threads.stream().forEach((thread) -> { try { thread.interrupt(); } catch (Throwable ignored) {} }); } catch (Throwable ignored) {}
+      final AtomicBoolean cancelSearch = new AtomicBoolean(false);
+      threads.forEach(thread -> thread.setUncaughtExceptionHandler(handler));
+      try { threads.forEach(Thread::start); } catch (Throwable t) { Log.e(t); }
+      try { threads.forEach((thread) -> { try { if (!cancelSearch.get()) thread.join(); } catch (Throwable t) { Log.o("solver interrupted, cancelling..."); cancelSearch.set(true); } }); } catch (Throwable ignored) {}
+      try { threads.forEach((thread) -> { try { thread.interrupt(); } catch (Throwable ignored) {} }); } catch (Throwable ignored) {}
 
       // cancel the stats timer and record end time
       if (cacheStats)
@@ -306,7 +309,7 @@ public class Solver implements Runnable, Serializable
       Log.o( statsToString(true) );
 
       // notify waiters that we've completed factoring
-      cacheCallback.accept( goal() );
+      if (null != cacheCallback) cacheCallback.accept( goal() );
 
       // write out results to CSV
       if (null != cacheCsv)
@@ -433,24 +436,50 @@ public class Solver implements Runnable, Serializable
 
   public BigInteger semiprime() { return cacheS; }
 
+  private static final DecimalFormat statsToStringDecimalFormat = new DecimalFormat("0.00");
   private String statsToString(boolean detailed)
   {
     final long elapsedNanos = System.nanoTime() - startTime;
-    final long seconds = (elapsedNanos/1000000000L);
+    final long millis = elapsedNanos / 1000000000L;
+    final long seconds = millis / 1000L;
+    final long minutes = seconds / 60L;
+    final long hours = minutes / 60L;
+    final long days = hours / 24L;
+
     return
+
+        "<center>" +
+
         "<table border=\"1\">" +
+        "<caption align=\"top\">Search Progress</caption>" +
         "<tr>" +
-        "<th>generated</th>" + "<th>regenerated</th>" + "<th>ignored</th>" +
-        "<th>expanded</th>" + "<th>maxDepthSoFar</th>" + "<th>avgDepth</th>" +
+        "<th>generated</th>" + "<th>regenerated</th>" + "<th>ignored</th>" + "<th>expanded</th>" + "<th>maxDepthSoFar</th>" + "<th>avgDepth</th>" +
         "</tr>" +
         "<tr>" +
         "<td>" + generated + "</td>" + "<td>" + regenerated + "</td>" + "<td>" + ignored + "</td>" +
         "<td>" + expanded + "</td>" + "<td>" + maxDepthSoFar + "</td>" + "<td>" + avgDepth() + "</td>" +
         "</tr>" +
         "</table>" +
-        (detailed ? "\topen.size():\t" + open.size() : "") +
-        (detailed ? "\tclosed.size():\t" + closed.size() : "") +
-        "elapsed:\t" + (seconds/60L) + " minutes, " + (seconds%60L) + " seconds";
+
+        "<br>" +
+
+        "<table border=\"1\">" +
+        "<caption align=\"top\">Time Elapsed</caption>" +
+        "<tr>" +
+        "<th>days</th><th>hours</th><th>minutes</th><th>seconds</th>" +
+        "</tr>" +
+        "<tr>" +
+        "<td>" + days + "</td><td>" + hours + "</td><td>" + minutes + "</td><td>" + (0 != seconds ? seconds : statsToStringDecimalFormat.format(millis / 1000.0)) + "</td>" +
+        "</tr>" +
+        "</table>" +
+
+        "<br>" +
+
+        (detailed ? "\nopened: " + open.size() + "\nclosed: " + closed.size() : "") +
+
+        "</center>"
+        
+        ;
   }
 
 
@@ -461,7 +490,7 @@ public class Solver implements Runnable, Serializable
    * @return true if this is the goal or a goal node has been found
    */
   private boolean goal(Node n) { return null == n ? null != goal() : (n.goal() && (goal.compareAndSet(null, n) || null != goal())); }
-  private Node goal() { return goal.get(); }
+  public Node goal() { return goal.get(); }
 
   private long generated() { return generated.get(); }
   private long regenerated() { return regenerated.get(); }
@@ -621,7 +650,6 @@ public class Solver implements Runnable, Serializable
     @Override public int compareTo(Object o) { return Double.compare(h(), ((Node) o).h()); }
     @Override public int hashCode() { return hashCode; }
 
-    Solver solver() { return Solver.this; }
     String toCsv() { return generated + "," + ignored + "," + expanded + "," + open.size() + "," + closed.size() + "," + maxDepth() + "," + avgDepth() + "," + depth + "," + h + "," + hashCode + "," + s + "," + p + "," + q; }
 
     int depth() { return this.depth; }
@@ -662,7 +690,7 @@ public class Solver implements Runnable, Serializable
     {
       if (h != Double.POSITIVE_INFINITY) return h; h = 0;
       final double numHeuristics = (double) cacheHeuristics.length;
-      for (Heuristic heuristic : cacheHeuristics) h += heuristic.apply(solver(), this);
+      for (Heuristic heuristic : cacheHeuristics) h += heuristic.apply(Solver.this, this);
       return numHeuristics > 0 ? h / numHeuristics : h;
     }
 

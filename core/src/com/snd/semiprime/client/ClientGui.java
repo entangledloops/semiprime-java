@@ -162,7 +162,7 @@ public class ClientGui extends JFrame implements DocumentListener
   // help / about menu
   private static final String ABOUT_URL    = "https://github.com/entangledloops/heuristicSearch/wiki/Semiprime-Factorization";
   private static final String NO_MATH_URL  = ABOUT_URL + "---%22I-don't-math%22-edition";
-  private static final String SOURCE_URL   = "https://github.com/entangledloops/heuristicSearch/tree/master";
+  private static final String SOURCE_URL   = "https://github.com/entangledloops/semiprime";
   private static final String HOMEPAGE_URL = "http://www.entangledloops.com";
   private static final String OS           = System.getProperty("os.name");
 
@@ -195,7 +195,7 @@ public class ClientGui extends JFrame implements DocumentListener
   private JButton     btnSearch;
   private JTextArea   txtSemiprime;
   private JTextField  txtSemiprimeBase, txtInternalBase, txtP1Len, txtP2Len;
-  private JPanel pnlSearchFooter;
+  private JPanel      pnlSearchFooter;
 
   // cpu tab
   private JSlider sldProcessors, sldProcessorCap, sldMemoryCap, sldIdle;
@@ -525,9 +525,6 @@ public class ClientGui extends JFrame implements DocumentListener
       chkHeuristics[i] = getCheckBox(Heuristic.values()[i].toString(), false);
       chkHeuristics[i].setToolTipText(Heuristic.values()[i].description());
     }
-    chkHeuristics[0].setSelected(true);
-    chkHeuristics[0].addActionListener((e) -> { if (!chkHeuristics[0].isSelected()) Stream.of(chkHeuristics).skip(1).forEach(chk -> chk.setSelected(false));});
-    chkHeuristics[chkHeuristics.length-1].addActionListener((e) -> { if (!chkHeuristics[chkHeuristics.length-1].isSelected()) Stream.of(chkHeuristics).skip(1).forEach(chk -> chk.setSelected(true));});
 
     /////////////////////////////////////
 
@@ -686,12 +683,18 @@ public class ClientGui extends JFrame implements DocumentListener
         if (!isSearching.compareAndSet(false, true))
         {
           final Solver solver = solver();
+
+          // if there's a pending search, try to cancel it
           if (null != solver)
           {
             btnPause.setEnabled(false); btnResume.setEnabled(false);
-            if (solver.solving()) { Log.o("interrupting search..."); solver.interruptAndJoin(); Solver.release(); }
-            try { solver.join(); } catch (Throwable ignored) {}
+            if (solver.solving()) { solver.interruptAndJoin(); Solver.release(); Log.o("search cancelled by user"); }
+            try { solver.join(); isSearching.set(false); btnSearch.setText("Start Local Search"); } catch (Throwable ignored) {}
           }
+
+          // remember to re-enable the button no matter what happened
+          btnSearch.setEnabled(true);
+
           return;
         }
 
@@ -719,14 +722,6 @@ public class ClientGui extends JFrame implements DocumentListener
         }
         catch (Throwable t) { Log.e(t); throw new NullPointerException(); }
 
-        // set the default callback for search completion (null = solver() -> search was cancelled before completion)
-        Solver.callback(n ->
-        {
-          if (null != n) { pneMain.setSelectedIndex(TAB_CONNECT); Log.o("\n********** results **********\n\n\ts:\t" + n.s + "\n\tp:\t" + n.p + "\n\tq:\t" + n.q); }
-          else if (null != solver()) { pneMain.setSelectedIndex(TAB_CONNECT); Log.e("\n********** results **********\n\n\tno factors could be found, are you sure the input is semiprime" + (Solver.primeLengthsFixed() ? " and the factors are the specified lengths?" : "?")); }
-          isSearching.set(false); btnSearch.setText("Start Local Search");
-        });
-
         // try to parse any fixed prime lengths
         try { Solver.pLength(Integer.parseInt(clean(txtP1Len.getText()))); } catch (Throwable t) { throw new NullPointerException("prime 1 len invalid"); }
         try { Solver.qLength(Integer.parseInt(clean(txtP2Len.getText()))); } catch (Throwable t) { throw new NullPointerException("prime 2 len invalid"); }
@@ -748,22 +743,90 @@ public class ClientGui extends JFrame implements DocumentListener
         // ensure gui values reflect underlying state
         updateSettings();
 
-        // in case search crashes app due to internal error or user picking bad flags
-        saveSettings();
-
-        // prevent multiple searches
-        btnSearch.setText("Cancel Search");
-
         // try to start solving
-        solver( new Solver(new BigInteger(sp, spBase)).start() );
+        final int base = spBase;
+        final SwingWorker<Solver.Node, Object> worker = new SwingWorker<Solver.Node, Object>()
+        {
+          @Override public Solver.Node doInBackground()
+          {
+            try
+            {
+              // drop to background
+              setVisible(false);
+
+              isSearching.set(true);
+              btnSearch.setText("Cancel Search");
+              btnSearch.setEnabled(true);
+              btnPause.setEnabled(true);
+              btnResume.setEnabled(false);
+              pneMain.setSelectedIndex(TAB_CONNECT);
+
+
+              final Solver solver = new Solver(new BigInteger(sp, base));
+              solver(solver);
+
+              // let user know we are now iconified
+              SwingUtilities.invokeLater(() ->
+              {
+                try
+                {
+                  Thread.sleep(1000);
+                  if (isSearching.get()) trayIcon.displayMessage("Search Launched", "A search has begun and can be accessed from here.", TrayIcon.MessageType.INFO);
+                }
+                catch (Throwable ignored) {}
+              });
+
+
+              solver.run();
+
+              return solver.goal();
+            }
+            catch (Throwable t)
+            {
+              Log.e(t);
+              return null;
+            }
+            finally
+            {
+              isSearching.set(false);
+            }
+          }
+
+          @Override public void done()
+          {
+            try
+            {
+              final Solver.Node n = get();
+
+              SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(null, null != n ? "Solution found!" : "No solution found.", "Search Complete", null != n ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE));
+
+              Log.o("\n********** results **********\n\n\t" +
+                  (
+                      null != n ?
+                          "s:\t" + n.s + "\n\tp:\t" + n.p + "\n\tq:\t" + n.q :
+                          "no factors could be found, are you sure the input is semiprime" + (Solver.primeLengthsFixed() ? " and the factors are the specified lengths?" : "?")
+                  )
+              );
+
+              pneMain.setSelectedIndex(TAB_CONNECT);
+              btnPause.setEnabled(false);
+              btnResume.setEnabled(false);
+              btnSearch.setText("Start Local Search");
+              setVisible(true);
+            }
+            catch (Throwable t)
+            {
+              Log.e(t);
+              exit();
+            }
+          }
+        };
+
+        worker.execute();
       }
-      catch (Throwable t) { Log.e(t.getLocalizedMessage()); }
-      finally
+      catch (Throwable t)
       {
-        final Solver solver = solver();
-        if (null != solver && solver.solving()) { btnPause.setEnabled(true); btnResume.setEnabled(false); pneMain.setSelectedIndex(TAB_CONNECT); }
-        else { isSearching.set(false); btnPause.setEnabled(false); btnResume.setEnabled(false); btnSearch.setText("Start Local Search"); }
-        btnSearch.setEnabled(true);
+        Log.e(t);
       }
     });
 

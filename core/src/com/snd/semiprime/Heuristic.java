@@ -1,6 +1,9 @@
 package com.snd.semiprime;
 
+import java.util.Arrays;
 import java.util.function.BiFunction;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 
 /**
   * @author Stephen Dunn
@@ -8,7 +11,8 @@ import java.util.function.BiFunction;
   */
 public enum Heuristic
 {
-  NONE("None", "Brute-force Search", (s,n) -> 0.0),
+  // template for an empty heuristic; commented to prevent adding to gui; you may safely uncomment for use from a commandline app
+  //NONE("None", "Brute-force Search", (s,n) -> 0.0),
 
   DIST_EXPECTED_SEPARATE("Expected Distribution (separate)",
       "Calculate distribution difference from target.\nabs( sum(factor[i].bitCount() / factor[i].bitLength()) - (targetBitCount / targetBitLen) )",
@@ -34,7 +38,8 @@ public enum Heuristic
       "<a href=\"https://en.wikipedia.org/wiki/Hamming_distance\">Hamming distance</a> to goal.\nfor each bit i in target:\n\tsum( n.s[i] != target[i] )",
       (s,n) -> (double) s.cacheS.xor(n.s).bitCount() / (double) s.cacheSLen2),
 
-  ALL("All", "Combines all available heuristics", (s,n) -> 0.0),
+  // template for all heuristics option; commented to prevent adding to gui; you may safely uncomment for use from a commandline app
+  //ALL("All", "Combines all available heuristics", (s,n) -> Arrays.stream( Heuristic.values() ).mapToDouble(h -> h.function.apply(s,n)).sum() / (double) Heuristic.values().length),
   ;
 
   private final String name, desc;

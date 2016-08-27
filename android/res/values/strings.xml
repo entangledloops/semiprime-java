@@ -4,7 +4,7 @@
     <!-- Label for this package -->
     <string name="label">snd</string>
     <!-- current build -->
-    <string name="build_number">1019</string>
+    <string name="build_number">1055</string>
     <!-- app name that will appear in android OS -->
     <string name="app_name">semiprime</string>
     <!-- the app's user id so we can share 1 id between different components -->
