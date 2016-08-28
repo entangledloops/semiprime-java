@@ -22,7 +22,7 @@ import java.util.stream.Stream;
  */
 public class Solver implements Runnable, Serializable
 {
-  public static final String BUILD_NUMBER = "1056";
+  public static final String BUILD_NUMBER = "1059";
   public static final String VERSION =
       new StringBuilder( new StringBuilder(BUILD_NUMBER).reverse().toString().substring(3) ).reverse().toString() + "." +
       BUILD_NUMBER.charAt(BUILD_NUMBER.length()-3) + "." +
@@ -469,7 +469,7 @@ public class Solver implements Runnable, Serializable
         "<th>days</th><th>hours</th><th>minutes</th><th>seconds</th>" +
         "</tr>" +
         "<tr>" +
-        "<td>" + days + "</td><td>" + hours + "</td><td>" + minutes + "</td><td>" + (0 != seconds ? seconds : statsToStringDecimalFormat.format(millis / 1000.0)) + "</td>" +
+        "<td>" + days + "</td><td>" + (hours % 24) + "</td><td>" + (minutes % 60) + "</td><td>" + (0 != seconds ? seconds % 60 : statsToStringDecimalFormat.format(millis / 1000.0)) + "</td>" +
         "</tr>" +
         "</table>" +
 
