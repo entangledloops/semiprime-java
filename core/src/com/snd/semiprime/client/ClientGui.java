@@ -764,17 +764,16 @@ public class ClientGui extends JFrame implements DocumentListener
               final Solver solver = new Solver( new BigInteger(sp, base) );
               solver(solver);
 
-              // let user know we are now iconified
-              SwingUtilities.invokeLater(() ->
+              // let user know we are now running collapsed into icon
+              new Thread(() ->
               {
                 try
                 {
                   Thread.sleep(1000);
-
                   if (isSearching.get()) trayIcon.displayMessage("Search Launched", "A search has begun and can be accessed from here.", TrayIcon.MessageType.INFO);
                 }
                 catch (Throwable ignored) {}
-              });
+              }).start();
 
               solver.start();
               solver.join();
@@ -800,10 +799,10 @@ public class ClientGui extends JFrame implements DocumentListener
 
               SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(null, null != n ? "Solution found!" : "No solution found.", "Search Complete", null != n ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE));
 
-              Log.o("\n********** results **********\n\n\t" +
+              Log.o("\n********** results **********\n\n" +
                   (
                       null != n ?
-                          "s:\t" + n.s + "\n\tp:\t" + n.p + "\n\tq:\t" + n.q :
+                          "s:\t" + n.s + "\np:\t" + n.p + "\nq:\t" + n.q :
                           "no factors could be found, are you sure the input is semiprime" + (Solver.primeLengthsFixed() ? " and the factors are the specified lengths?" : "?")
                   )
               );
