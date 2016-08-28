@@ -751,7 +751,17 @@ public class ClientGui extends JFrame implements DocumentListener
           {
             try
             {
-              final Solver solver = new Solver(new BigInteger(sp, base));
+              // drop to background
+              setVisible(false);
+
+              isSearching.set(true);
+              btnSearch.setText("Cancel Search");
+              btnSearch.setEnabled(true);
+              btnPause.setEnabled(true);
+              btnResume.setEnabled(false);
+              pneMain.setSelectedIndex(TAB_CONNECT);
+
+              final Solver solver = new Solver( new BigInteger(sp, base) );
               solver(solver);
 
               // let user know we are now iconified
@@ -759,16 +769,6 @@ public class ClientGui extends JFrame implements DocumentListener
               {
                 try
                 {
-                  // drop to background
-                  setVisible(false);
-
-                  isSearching.set(true);
-                  btnSearch.setText("Cancel Search");
-                  btnSearch.setEnabled(true);
-                  btnPause.setEnabled(true);
-                  btnResume.setEnabled(false);
-                  pneMain.setSelectedIndex(TAB_CONNECT);
-
                   Thread.sleep(1000);
 
                   if (isSearching.get()) trayIcon.displayMessage("Search Launched", "A search has begun and can be accessed from here.", TrayIcon.MessageType.INFO);
@@ -776,7 +776,8 @@ public class ClientGui extends JFrame implements DocumentListener
                 catch (Throwable ignored) {}
               });
 
-              solver.run();
+              solver.start();
+              solver.join();
 
               return solver.goal();
             }
@@ -807,14 +808,11 @@ public class ClientGui extends JFrame implements DocumentListener
                   )
               );
 
-              SwingUtilities.invokeLater(() ->
-              {
-                pneMain.setSelectedIndex(TAB_CONNECT);
-                btnPause.setEnabled(false);
-                btnResume.setEnabled(false);
-                btnSearch.setText("Start Local Search");
-                setVisible(true);
-              });
+              pneMain.setSelectedIndex(TAB_CONNECT);
+              btnPause.setEnabled(false);
+              btnResume.setEnabled(false);
+              btnSearch.setText("Start Local Search");
+              setVisible(true);
             }
             catch (Throwable t)
             {
