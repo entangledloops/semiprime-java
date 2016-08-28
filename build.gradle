@@ -61,6 +61,7 @@ allprojects {
         box2DLightsVersion = '1.4'
         ashleyVersion = '1.7.0'
         aiVersion = '1.8.0'
+        hazelcastVersion = '3.7'
     }
 
     // color errors
@@ -189,6 +190,8 @@ project(":core") {
 
     dependencies {
         compile "com.badlogicgames.gdx:gdx:$gdxVersion"
+
+        compile "com.hazelcast:hazelcast:$hazelcastVersion"
 
         compile fileTree(dir: "libs", include: "*.jar")
     }

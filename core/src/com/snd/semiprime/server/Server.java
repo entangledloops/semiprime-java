@@ -130,14 +130,21 @@ public class Server
 
   public static void main(String[] args)
   {
-    final String[] semiprimes = new String[] { ClientGui.RSA_220, ClientGui.RSA_300, ClientGui.RSA_2048 };
     final ServerGui serverGui = new ServerGui();
 
+    // new Server();
+    new HazelcastServer();
+
+    /*
+    final String[] semiprimes = new String[] { ClientGui.RSA_220, ClientGui.RSA_300, ClientGui.RSA_2048 };
+
     Solver.networkHost(true);
+
     for (final String semiprime : semiprimes)
     {
       final Solver solver = new Solver(new BigInteger(semiprime.trim().replace("\n","")));
       solver.start(); solver.join();
     }
+    */
   }
 }

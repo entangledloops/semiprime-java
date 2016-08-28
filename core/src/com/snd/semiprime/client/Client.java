@@ -237,5 +237,7 @@ public class Client
 
     // take appropriate action based on args
     if (!headless) new ClientGui();
+
+    new HazelcastClient();
   }
 }

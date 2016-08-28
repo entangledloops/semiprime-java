@@ -43,7 +43,6 @@ public class ServerGui extends JFrame implements DocumentListener
   //
   //////////////////////////////////////////////////////////////////////////////
 
-  private final Server server;
 
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -51,11 +50,9 @@ public class ServerGui extends JFrame implements DocumentListener
   //
   //////////////////////////////////////////////////////////////////////////////
 
-  public ServerGui() { this(new Server()); }
-  public ServerGui(Server server)
+  public ServerGui()
   {
     super();
-    this.server = server;
 
     setVisible(false);
     if (!create()) throw new NullPointerException("failed to create server gui");
@@ -63,10 +60,6 @@ public class ServerGui extends JFrame implements DocumentListener
 
     toFront();
   }
-
-  public ServerSocket socket() { return server.socket(); }
-
-  public boolean ready() { return server.ready(); }
 
   public void resetFrame()
   {
@@ -128,7 +121,6 @@ public class ServerGui extends JFrame implements DocumentListener
       @Override
       public void windowClosing(final WindowEvent winEvt)
       {
-        server.close();
         System.exit(0);
       }
     });

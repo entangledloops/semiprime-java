@@ -1,6 +1,11 @@
 package com.snd.semiprime.client;
 
+import com.hazelcast.config.Config;
+import com.hazelcast.config.MapConfig;
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
 import com.snd.semiprime.*;
+import com.snd.semiprime.server.Server;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
