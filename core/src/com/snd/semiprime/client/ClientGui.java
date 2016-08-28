@@ -400,7 +400,6 @@ public class ClientGui extends JFrame implements DocumentListener
     txtLog.setVisible(true);
     txtLog.setEnabled(true);
 
-
     Log.init(s ->
     {
       final Runnable append = () ->
@@ -751,21 +750,24 @@ public class ClientGui extends JFrame implements DocumentListener
           {
             try
             {
-              // drop to background
-              setVisible(false);
+              SwingUtilities.invokeAndWait(() ->
+              {
+                isSearching.set(true);
+                btnSearch.setText("Cancel Search");
+                btnSearch.setEnabled(true);
+                btnPause.setEnabled(true);
+                btnResume.setEnabled(false);
+                pneMain.setSelectedIndex(TAB_CONNECT);
 
-              isSearching.set(true);
-              btnSearch.setText("Cancel Search");
-              btnSearch.setEnabled(true);
-              btnPause.setEnabled(true);
-              btnResume.setEnabled(false);
-              pneMain.setSelectedIndex(TAB_CONNECT);
+                // drop to background
+                setVisible(false);
+              });
 
               final Solver solver = new Solver( new BigInteger(sp, base) );
               solver(solver);
 
               // let user know we are now running collapsed into icon
-              new Thread(() ->
+              SwingUtilities.invokeLater(() ->
               {
                 try
                 {
@@ -773,7 +775,7 @@ public class ClientGui extends JFrame implements DocumentListener
                   if (isSearching.get()) trayIcon.displayMessage("Search Launched", "A search has begun and can be accessed from here.", TrayIcon.MessageType.INFO);
                 }
                 catch (Throwable ignored) {}
-              }).start();
+              });
 
               solver.start();
               solver.join();
@@ -797,8 +799,6 @@ public class ClientGui extends JFrame implements DocumentListener
             {
               final Solver.Node n = get();
 
-              SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(null, null != n ? "Solution found!" : "No solution found.", "Search Complete", null != n ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE));
-
               Log.o("\n********** results **********\n\n" +
                   (
                       null != n ?
@@ -807,11 +807,16 @@ public class ClientGui extends JFrame implements DocumentListener
                   )
               );
 
-              pneMain.setSelectedIndex(TAB_CONNECT);
-              btnPause.setEnabled(false);
-              btnResume.setEnabled(false);
-              btnSearch.setText("Start Local Search");
-              setVisible(true);
+              SwingUtilities.invokeLater(() ->
+              {
+                pneMain.setSelectedIndex(TAB_CONNECT);
+                btnPause.setEnabled(false);
+                btnResume.setEnabled(false);
+                btnSearch.setText("Start Local Search");
+                setVisible(true);
+
+                JOptionPane.showMessageDialog(null, null != n ? "Solution found!" : "No solution found.", "Search Complete", null != n ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+              });
             }
             catch (Throwable t)
             {
@@ -1204,16 +1209,20 @@ public class ClientGui extends JFrame implements DocumentListener
 
   private void loadBenchmark(String benchmark)
   {
-    SwingUtilities.invokeLater(() ->
+    try
     {
-      txtSemiprime.setText(benchmark);
-      txtSemiprimeBase.setText("10");
-      txtInternalBase.setText("2");
-      final int semiprimeLen = getSemiprimeLen();
-      final String len = ""+((semiprimeLen/2)+(0==semiprimeLen%2?0:1));
-      txtP1Len.setText(len); txtP2Len.setText(len);
-      updateSemiprimeInfo();
-    });
+      SwingUtilities.invokeAndWait(() ->
+      {
+        txtSemiprime.setText(benchmark);
+        txtSemiprimeBase.setText("10");
+        txtInternalBase.setText("2");
+        final int semiprimeLen = getSemiprimeLen();
+        final String len = ""+((semiprimeLen/2)+(0==semiprimeLen%2?0:1));
+        txtP1Len.setText(len); txtP2Len.setText(len);
+        updateSemiprimeInfo();
+      });
+    }
+    catch (Throwable t) { Log.e(t); }
   }
 
   private Solver solver(Solver solver) { return this.solver.getAndSet(solver); }
@@ -1225,29 +1234,33 @@ public class ClientGui extends JFrame implements DocumentListener
   private void updateNetworkComponents() { updateNetworkComponents(null); }
   private void updateNetworkComponents(Packet p)
   {
-    SwingUtilities.invokeLater(() ->
+    try
     {
-      if (null != p) return;
-      final Client c = client.get();
-      if (isConnecting.get())
+      SwingUtilities.invokeAndWait(() ->
       {
-        btnUpdate.setEnabled(false);
-        btnConnect.setEnabled(false);
-        btnConnect.setText("Connecting...");
-      }
-      else if (null == c || !c.connected())
-      {
-        btnUpdate.setEnabled(false);
-        btnConnect.setEnabled(true);
-        btnConnect.setText("Connect Now");
-      }
-      else
-      {
-        btnUpdate.setEnabled( !isUpdatePending.get() );
-        btnConnect.setEnabled(true);
-        btnConnect.setText("Disconnect");
-      }
-    });
+        if (null != p) return;
+        final Client c = client.get();
+        if (isConnecting.get())
+        {
+          btnUpdate.setEnabled(false);
+          btnConnect.setEnabled(false);
+          btnConnect.setText("Connecting...");
+        }
+        else if (null == c || !c.connected())
+        {
+          btnUpdate.setEnabled(false);
+          btnConnect.setEnabled(true);
+          btnConnect.setText("Connect Now");
+        }
+        else
+        {
+          btnUpdate.setEnabled( !isUpdatePending.get() );
+          btnConnect.setEnabled(true);
+          btnConnect.setText("Disconnect");
+        }
+      });
+    }
+    catch (Throwable t) { Log.e(t); }
   }
 
   private void pause()
@@ -1327,44 +1340,48 @@ public class ClientGui extends JFrame implements DocumentListener
 
   private void sendSettings()
   {
-    SwingUtilities.invokeLater(() ->
+    try
     {
-      Log.o("sending user settings to the server...");
+      SwingUtilities.invokeAndWait(() ->
+      {
+        Log.o("sending user settings to the server...");
 
-      // ensure a client exists
-      final Client client = client();
-      if (null == client || !client.connected()) { Log.e("you need to be connected before updating"); return; }
+        // ensure a client exists
+        final Client client = client();
+        if (null == client || !client.connected()) { Log.e("you need to be connected before updating"); return; }
 
-      // ensure we aren't overlapping w/another start
-      if (!isUpdatePending.compareAndSet(false, true)) { Log.e("already working on an update, hang tight..."); return; }
-      btnUpdate.setEnabled(false);
-      txtUsername.setEnabled(false);
-      txtEmail.setEnabled(false);
+        // ensure we aren't overlapping w/another start
+        if (!isUpdatePending.compareAndSet(false, true)) { Log.e("already working on an update, hang tight..."); return; }
+        btnUpdate.setEnabled(false);
+        txtUsername.setEnabled(false);
+        txtEmail.setEnabled(false);
 
-      // grab the info from the connect boxes and clean it up
-      String username = txtUsername.getText().trim();
-      if ("".equals(username)) username = System.getProperty("user.name");
-      txtUsername.setText(username);
+        // grab the info from the connect boxes and clean it up
+        String username = txtUsername.getText().trim();
+        if ("".equals(username)) username = System.getProperty("user.name");
+        txtUsername.setText(username);
 
-      String email = txtEmail.getText().trim();
-      if ("".equals(email)) email = DEFAULT_EMAIL;
-      txtEmail.setText(email);
+        String email = txtEmail.getText().trim();
+        if ("".equals(email)) email = DEFAULT_EMAIL;
+        txtEmail.setText(email);
 
-      // attempt to send each piece of client info to the server
-      client.username(username);
-      if (!client.write(Packet.Type.USERNAME_UPDATE, username)) { Log.e("failed to send username, try reconnecting"); return; }
+        // attempt to send each piece of client info to the server
+        client.username(username);
+        if (!client.write(Packet.Type.USERNAME_UPDATE, username)) { Log.e("failed to send username, try reconnecting"); return; }
 
-      client.email(email);
-      if (!client.write(Packet.Type.EMAIL_UPDATE, email)) { Log.e("failed to send email, try reconnecting"); return; }
+        client.email(email);
+        if (!client.write(Packet.Type.EMAIL_UPDATE, email)) { Log.e("failed to send email, try reconnecting"); return; }
 
-      // if all went all, update our state
-      txtEmail.setEnabled(true);
-      txtUsername.setEnabled(true);
-      btnUpdate.setEnabled(true);
-      isUpdatePending.set(false);
+        // if all went all, update our state
+        txtEmail.setEnabled(true);
+        txtUsername.setEnabled(true);
+        btnUpdate.setEnabled(true);
+        isUpdatePending.set(false);
 
-      Log.o("the server has acknowledged your settings");
-    });
+        Log.o("the server has acknowledged your settings");
+      });
+    }
+    catch (Throwable t) { Log.e(t); }
   }
 
   private void saveConnectionSettings()
@@ -1441,63 +1458,75 @@ public class ClientGui extends JFrame implements DocumentListener
 
   private void loadConnectionSettings()
   {
-    SwingUtilities.invokeLater(() ->
+    try
     {
-      txtUsername.setText(getPrefString(USERNAME_NAME, DEFAULT_USERNAME));
-      txtEmail.setText(getPrefString(EMAIL_NAME, DEFAULT_EMAIL));
-      txtHost.setText(getPrefString(HOST_NAME, DEFAULT_HOST));
-      txtPort.setText("" + prefs.getInt(PORT_NAME, DEFAULT_PORT));
+      SwingUtilities.invokeAndWait(() ->
+      {
+        txtUsername.setText(getPrefString(USERNAME_NAME, DEFAULT_USERNAME));
+        txtEmail.setText(getPrefString(EMAIL_NAME, DEFAULT_EMAIL));
+        txtHost.setText(getPrefString(HOST_NAME, DEFAULT_HOST));
+        txtPort.setText("" + prefs.getInt(PORT_NAME, DEFAULT_PORT));
 
-      Log.o("connection settings loaded");
-    });
+        Log.o("connection settings loaded");
+      });
+    }
+    catch (Throwable t) { Log.e(t); }
   }
 
   private void loadSearchSettings()
   {
-    SwingUtilities.invokeLater(() ->
+    try
     {
-      // parse semiprime stored bytes -> asString
-      txtSemiprime.setText(getPrefString(SEMIPRIME_NAME, null));
-      txtSemiprimeBase.setText(""+prefs.getInt(SEMIPRIME_BASE_NAME, DEFAULT_SEMIPRIME_BASE));
-      txtInternalBase.setText(""+prefs.getInt(INTERNAL_BASE_NAME, DEFAULT_INTERNAL_BASE));
-      txtP1Len.setText(""+prefs.getInt(P1_LEN_NAME, DEFAULT_P1_LEN));
-      txtP2Len.setText(""+prefs.getInt(P2_LEN_NAME, DEFAULT_P2_LEN));
+      SwingUtilities.invokeAndWait(() ->
+      {
+        // parse semiprime stored bytes -> asString
+        txtSemiprime.setText(getPrefString(SEMIPRIME_NAME, null));
+        txtSemiprimeBase.setText(""+prefs.getInt(SEMIPRIME_BASE_NAME, DEFAULT_SEMIPRIME_BASE));
+        txtInternalBase.setText(""+prefs.getInt(INTERNAL_BASE_NAME, DEFAULT_INTERNAL_BASE));
+        txtP1Len.setText(""+prefs.getInt(P1_LEN_NAME, DEFAULT_P1_LEN));
+        txtP2Len.setText(""+prefs.getInt(P2_LEN_NAME, DEFAULT_P2_LEN));
 
-      chkFavorPerformance.setSelected(prefs.getBoolean(FAVOR_PERFORMANCE_NAME, DEFAULT_FAVOR_PERFORMANCE));
-      chkCompressMemory.setSelected(prefs.getBoolean(COMPRESS_MEMORY_NAME, DEFAULT_COMPRESS_MEMORY));
-      chkRestrictDisk.setSelected(prefs.getBoolean(RESTRICT_DISK_NAME, DEFAULT_RESTRICT_DISK));
-      chkPrintAllNodes.setSelected(prefs.getBoolean(PRINT_ALL_NODES_NAME, DEFAULT_PRINT_ALL_NODES));
-      chkWriteCsv.setSelected(prefs.getBoolean(WRITE_CSV_NAME, DEFAULT_WRITE_CSV));
+        chkFavorPerformance.setSelected(prefs.getBoolean(FAVOR_PERFORMANCE_NAME, DEFAULT_FAVOR_PERFORMANCE));
+        chkCompressMemory.setSelected(prefs.getBoolean(COMPRESS_MEMORY_NAME, DEFAULT_COMPRESS_MEMORY));
+        chkRestrictDisk.setSelected(prefs.getBoolean(RESTRICT_DISK_NAME, DEFAULT_RESTRICT_DISK));
+        chkPrintAllNodes.setSelected(prefs.getBoolean(PRINT_ALL_NODES_NAME, DEFAULT_PRINT_ALL_NODES));
+        chkWriteCsv.setSelected(prefs.getBoolean(WRITE_CSV_NAME, DEFAULT_WRITE_CSV));
 
-      updateSemiprimeInfo();
+        updateSemiprimeInfo();
 
-      Log.o("search settings loaded");
-    });
+        Log.o("search settings loaded");
+      });
+    }
+    catch (Throwable t) { Log.e(t); }
   }
 
   private void loadCpuSettings()
   {
-    SwingUtilities.invokeLater(() ->
+    try
     {
-      final int processors = prefs.getInt(PROCESSORS_NAME, DEFAULT_PROCESSORS);
-      sldProcessors.setValue(processors);
-      Solver.processors(processors);
+      SwingUtilities.invokeAndWait(() ->
+      {
+        final int processors = prefs.getInt(PROCESSORS_NAME, DEFAULT_PROCESSORS);
+        sldProcessors.setValue(processors);
+        Solver.processors(processors);
 
-      final int processorCap = prefs.getInt(PROCESSOR_CAP_NAME, DEFAULT_PROCESSOR_CAP);
-      sldProcessorCap.setValue(processorCap);
-      Solver.processorCap(processorCap);
+        final int processorCap = prefs.getInt(PROCESSOR_CAP_NAME, DEFAULT_PROCESSOR_CAP);
+        sldProcessorCap.setValue(processorCap);
+        Solver.processorCap(processorCap);
 
-      final int memory = prefs.getInt(MEMORY_CAP_NAME, DEFAULT_MEMORY_CAP);
-      sldMemoryCap.setValue(memory);
-      Solver.memoryCap(memory);
+        final int memory = prefs.getInt(MEMORY_CAP_NAME, DEFAULT_MEMORY_CAP);
+        sldMemoryCap.setValue(memory);
+        Solver.memoryCap(memory);
 
-      sldIdle.setValue(prefs.getInt(IDLE_MINUTES_NAME, DEFAULT_IDLE_MINUTES));
+        sldIdle.setValue(prefs.getInt(IDLE_MINUTES_NAME, DEFAULT_IDLE_MINUTES));
 
-      chkBackground.setSelected(prefs.getBoolean(BACKGROUND_NAME, DEFAULT_BACKGROUND));
-      chkAutoStart.setSelected(prefs.getBoolean(AUTOSTART_NAME, DEFAULT_AUTOSTART));
+        chkBackground.setSelected(prefs.getBoolean(BACKGROUND_NAME, DEFAULT_BACKGROUND));
+        chkAutoStart.setSelected(prefs.getBoolean(AUTOSTART_NAME, DEFAULT_AUTOSTART));
 
-      Log.o("cpu settings loaded");
-    });
+        Log.o("cpu settings loaded");
+      });
+    }
+    catch (Throwable t) { Log.e(t); }
   }
 
   private void loadSettings()
@@ -1518,18 +1547,22 @@ public class ClientGui extends JFrame implements DocumentListener
 
   private void updateSearchSettings()
   {
-    SwingUtilities.invokeLater(() ->
+    try
     {
-      chkFavorPerformance.setSelected(Solver.favorPerformance());
-      chkCompressMemory.setSelected(Solver.compressMemory());
-      chkRestrictDisk.setSelected(Solver.restrictDisk());
-      chkPrintAllNodes.setSelected(Solver.printAllNodes());
-      chkWriteCsv.setSelected(null != Solver.csv());
+      SwingUtilities.invokeAndWait(() ->
+      {
+        chkFavorPerformance.setSelected(Solver.favorPerformance());
+        chkCompressMemory.setSelected(Solver.compressMemory());
+        chkRestrictDisk.setSelected(Solver.restrictDisk());
+        chkPrintAllNodes.setSelected(Solver.printAllNodes());
+        chkWriteCsv.setSelected(null != Solver.csv());
 
-      txtInternalBase.setText(""+Solver.internalBase());
-      txtP1Len.setText(""+Solver.pLength());
-      txtP2Len.setText(""+Solver.qLength());
-    });
+        txtInternalBase.setText(""+Solver.internalBase());
+        txtP1Len.setText(""+Solver.pLength());
+        txtP2Len.setText(""+Solver.qLength());
+      });
+    }
+    catch (Throwable t) { Log.e(t); }
   }
 
   private void updateSettings()
@@ -1539,53 +1572,65 @@ public class ClientGui extends JFrame implements DocumentListener
 
   private void resetConnectionSettings()
   {
-    SwingUtilities.invokeLater(() ->
+    try
     {
-      txtUsername.setText(DEFAULT_USERNAME);
-      txtEmail.setText(DEFAULT_EMAIL);
-      txtHost.setText(DEFAULT_HOST);
-      txtPort.setText(""+DEFAULT_PORT);
+      SwingUtilities.invokeAndWait(() ->
+      {
+        txtUsername.setText(DEFAULT_USERNAME);
+        txtEmail.setText(DEFAULT_EMAIL);
+        txtHost.setText(DEFAULT_HOST);
+        txtPort.setText(""+DEFAULT_PORT);
 
-      Log.o("connection settings reset");
-    });
+        Log.o("connection settings reset");
+      });
+    }
+    catch (Throwable t) { Log.e(t); }
   }
 
   private void resetCpuSettings()
   {
-    SwingUtilities.invokeLater(() ->
+    try
     {
-      sldProcessors.setValue(DEFAULT_PROCESSORS);
-      sldProcessorCap.setValue(DEFAULT_PROCESSOR_CAP);
-      sldMemoryCap.setValue(DEFAULT_MEMORY_CAP);
-      sldIdle.setValue(DEFAULT_IDLE_MINUTES);
+      SwingUtilities.invokeAndWait(() ->
+      {
+        sldProcessors.setValue(DEFAULT_PROCESSORS);
+        sldProcessorCap.setValue(DEFAULT_PROCESSOR_CAP);
+        sldMemoryCap.setValue(DEFAULT_MEMORY_CAP);
+        sldIdle.setValue(DEFAULT_IDLE_MINUTES);
 
-      chkBackground.setSelected(DEFAULT_BACKGROUND);
-      chkAutoStart.setSelected(DEFAULT_AUTOSTART);
+        chkBackground.setSelected(DEFAULT_BACKGROUND);
+        chkAutoStart.setSelected(DEFAULT_AUTOSTART);
 
-      Log.o("cpu settings reset");
-    });
+        Log.o("cpu settings reset");
+      });
+    }
+    catch (Throwable t) { Log.e(t); }
   }
 
   private void resetSearchSettings()
   {
-    SwingUtilities.invokeLater(() ->
+    try
     {
-      txtSemiprime.setText("");
-      updateSemiprimeInfo();
+      SwingUtilities.invokeAndWait(() ->
+      {
+        txtSemiprime.setText("");
+        updateSemiprimeInfo();
 
-      txtSemiprimeBase.setText(""+DEFAULT_SEMIPRIME_BASE);
-      txtInternalBase.setText(""+DEFAULT_INTERNAL_BASE);
-      txtP1Len.setText(""+DEFAULT_P1_LEN);
-      txtP2Len.setText(""+DEFAULT_P2_LEN);
+        txtSemiprimeBase.setText(""+DEFAULT_SEMIPRIME_BASE);
+        txtInternalBase.setText(""+DEFAULT_INTERNAL_BASE);
+        txtP1Len.setText(""+DEFAULT_P1_LEN);
+        txtP2Len.setText(""+DEFAULT_P2_LEN);
 
-      chkFavorPerformance.setSelected(DEFAULT_FAVOR_PERFORMANCE);
-      chkCompressMemory.setSelected(DEFAULT_COMPRESS_MEMORY);
-      chkRestrictDisk.setSelected(DEFAULT_RESTRICT_DISK);
-      chkPrintAllNodes.setSelected(DEFAULT_PRINT_ALL_NODES);
-      chkWriteCsv.setSelected(DEFAULT_WRITE_CSV);
+        chkFavorPerformance.setSelected(DEFAULT_FAVOR_PERFORMANCE);
+        chkCompressMemory.setSelected(DEFAULT_COMPRESS_MEMORY);
+        chkRestrictDisk.setSelected(DEFAULT_RESTRICT_DISK);
+        chkPrintAllNodes.setSelected(DEFAULT_PRINT_ALL_NODES);
+        chkWriteCsv.setSelected(DEFAULT_WRITE_CSV);
 
-      Log.o("search settings reset");
-    });
+        Log.o("search settings reset");
+      });
+    }
+    catch (Throwable t) { Log.e(t); }
   }
 
   private void resetSettings()
