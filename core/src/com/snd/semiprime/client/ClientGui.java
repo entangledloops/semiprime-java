@@ -767,7 +767,7 @@ public class ClientGui extends JFrame implements DocumentListener
               solver(solver);
 
               // let user know we are now running collapsed into icon
-              SwingUtilities.invokeLater(() ->
+              new Thread(() ->
               {
                 try
                 {
@@ -775,7 +775,7 @@ public class ClientGui extends JFrame implements DocumentListener
                   if (isSearching.get()) trayIcon.displayMessage("Search Launched", "A search has begun and can be accessed from here.", TrayIcon.MessageType.INFO);
                 }
                 catch (Throwable ignored) {}
-              });
+              }).start();
 
               solver.start();
               solver.join();
