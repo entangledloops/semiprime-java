@@ -26,16 +26,22 @@ public class HazelcastClient
       System.out.println( address.getHostAddress() );
 
       config = new Config();
-      config.setInstanceName( Server.DEFAULT_HOST );
+      config.setInstanceName( "client" );
       config.getGroupConfig().setName( "semiprime" ).setPassword( "servebeer" );
+
       config.getNetworkConfig()
+          //.setPort(Server.DEFAULT_PORT )
+          //.setPortAutoIncrement( false )
           .setReuseAddress( true )
-          .setPort(Server.DEFAULT_PORT )
-          .setPortAutoIncrement( false )
+          .getJoin()
+            .getMulticastConfig()
+              .setEnabled( true );
+
+      config.getNetworkConfig()
           .getJoin()
             .getTcpIpConfig()
               .setRequiredMember( address.getHostAddress() )
-              .setEnabled( true );
+              .setEnabled( false );
 
       hazelcast = Hazelcast.newHazelcastInstance( config );
     }
