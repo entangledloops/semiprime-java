@@ -759,23 +759,27 @@ public class ClientGui extends JFrame implements DocumentListener
                 btnResume.setEnabled(false);
                 pneMain.setSelectedIndex(TAB_CONNECT);
 
-                // drop to background
-                setVisible(false);
+                // drop to background if requested
+                if (chkBackground.isSelected())
+                {
+                  // let user know we are now running collapsed into icon
+                  new Thread(() ->
+                  {
+                    try
+                    {
+                      Thread.sleep(1000);
+                      if (isSearching.get()) trayIcon.displayMessage("Search Launched", "A search has begun and can be accessed from here.", TrayIcon.MessageType.INFO);
+                    }
+                    catch (Throwable ignored) {}
+                  }).start();
+
+                  // hide main app screen
+                  setVisible(false);
+                }
               });
 
               final Solver solver = new Solver( new BigInteger(sp, base) );
               solver(solver);
-
-              // let user know we are now running collapsed into icon
-              new Thread(() ->
-              {
-                try
-                {
-                  Thread.sleep(1000);
-                  if (isSearching.get()) trayIcon.displayMessage("Search Launched", "A search has begun and can be accessed from here.", TrayIcon.MessageType.INFO);
-                }
-                catch (Throwable ignored) {}
-              }).start();
 
               solver.start();
               solver.join();
