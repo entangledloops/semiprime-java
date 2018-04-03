@@ -22,7 +22,7 @@ import java.util.stream.Stream;
  */
 public class Solver implements Runnable, Serializable
 {
-  public static final String BUILD_NUMBER = "1076";
+  public static final String BUILD_NUMBER = "1077";
   public static final String VERSION =
       new StringBuilder( new StringBuilder(BUILD_NUMBER).reverse().toString().substring(3) ).reverse().toString() + "." +
       BUILD_NUMBER.charAt(BUILD_NUMBER.length()-3) + "." +
@@ -347,8 +347,8 @@ public class Solver implements Runnable, Serializable
    */
   private Node close(Node n)
   {
-    final Node prev = closed.put(n, n);
-    if (null != prev) regenerated.addAndGet(1);
+    //final Node prev = closed.put(n, n);
+    //if (null != prev) regenerated.addAndGet(1);
     return n;
   }
 
@@ -365,7 +365,7 @@ public class Solver implements Runnable, Serializable
   }
 
   /**
-   * pop available node of opened
+   * pop available node off open list
    * @return the next available node or null if goal was found or error occurred
    */
   @SuppressWarnings("StatementWithEmptyBody")
@@ -613,7 +613,7 @@ public class Solver implements Runnable, Serializable
    * @author Stephen Dunn
    * @since October 31, 2015
    */
-  public class Node implements Serializable, Comparable
+  public class Node implements Comparable
   {
     private final boolean identicalFactors;
     private final int     hashCode;

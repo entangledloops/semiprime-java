@@ -20,7 +20,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.0-beta2'
+        //classpath 'com.android.tools.build:gradle:2.2.0-beta2'
         classpath 'de.richsource.gradle.plugins:gwt-gradle-plugin:0.6'
 
         if (Os.isFamily(Os.FAMILY_MAC))
@@ -85,7 +85,7 @@ allprojects {
     repositories {
         maven { url 'https://oss.sonatype.org/content/repositories/releases/' }
         maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
-        maven { url "$androidHome/extras/android/m2repository/".replace("\\","/").replace("//","/") }
+        //maven { url "$androidHome/extras/android/m2repository/".replace("\\","/").replace("//","/") }
         mavenCentral()
         mavenLocal()
     }
@@ -110,6 +110,7 @@ project(":desktop") {
     }
 }
 
+/*
 project(":android") {
     apply plugin: "com.android.application"
 
@@ -128,6 +129,7 @@ project(":android") {
         compile fileTree(dir: "libs", include: "*.jar")
     }
 }
+*/
 
 if (Os.isFamily(Os.FAMILY_MAC))
 {
