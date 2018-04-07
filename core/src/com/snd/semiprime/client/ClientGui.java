@@ -1211,7 +1211,7 @@ public class ClientGui extends JFrame implements DocumentListener
   {
     try
     {
-      SwingUtilities.invokeAndWait(() ->
+      SwingUtilities.invokeLater(() ->
       {
         txtSemiprime.setText(benchmark);
         txtSemiprimeBase.setText("10");

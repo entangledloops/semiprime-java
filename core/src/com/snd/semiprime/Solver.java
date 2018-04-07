@@ -22,7 +22,7 @@ import java.util.stream.Stream;
  */
 public class Solver implements Runnable, Serializable
 {
-  public static final String BUILD_NUMBER = "1077";
+  public static final String BUILD_NUMBER = "1079";
   public static final String VERSION =
       new StringBuilder( new StringBuilder(BUILD_NUMBER).reverse().toString().substring(3) ).reverse().toString() + "." +
       BUILD_NUMBER.charAt(BUILD_NUMBER.length()-3) + "." +
