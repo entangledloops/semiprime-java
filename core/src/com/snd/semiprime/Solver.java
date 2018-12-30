@@ -292,8 +292,8 @@ public class Solver implements Runnable, Serializable
       final AtomicBoolean cancelSearch = new AtomicBoolean(false);
       threads.forEach(thread -> thread.setUncaughtExceptionHandler(handler));
       try { threads.forEach(Thread::start); } catch (Throwable t) { Log.e(t); }
-      try { threads.forEach((thread) -> { try { if (!cancelSearch.get()) thread.join(); } catch (Throwable t) { Log.o("solver interrupted, cancelling..."); cancelSearch.set(true); } }); } catch (Throwable ignored) {}
-      try { threads.forEach((thread) -> { try { thread.interrupt(); } catch (Throwable ignored) {} }); } catch (Throwable ignored) {}
+      try { threads.forEach(thread -> { try { if (!cancelSearch.get()) thread.join(); } catch (Throwable t) { Log.o("solver interrupted, cancelling..."); cancelSearch.set(true); } }); } catch (Throwable ignored) {}
+      try { threads.forEach(thread -> { try { thread.interrupt(); } catch (Throwable ignored) {} }); } catch (Throwable ignored) {}
 
       // cancel the stats timer and record end time
       if (cacheStats)
@@ -347,8 +347,8 @@ public class Solver implements Runnable, Serializable
    */
   private Node close(Node n)
   {
-    //final Node prev = closed.put(n, n);
-    //if (null != prev) regenerated.addAndGet(1);
+    final Node prev = closed.put(n, n);
+    if (null != prev) regenerated.addAndGet(1);
     return n;
   }
 
@@ -360,7 +360,7 @@ public class Solver implements Runnable, Serializable
   private boolean push(Node n)
   {
     if (goal(n)) return false;
-    if (!open.offer(n)) { regenerated.addAndGet(1); return false; }
+    if (!open.offer(n)) { Log.e("node offer failed"); return false; }
     return true;
   }
 
@@ -409,8 +409,9 @@ public class Solver implements Runnable, Serializable
       {
         if (i > j && n.identicalFactors()) continue;
         
-        final Node node = close(new Node(n, i, j));
-        if (null != node && node.validFactors())
+        //final Node node = close(new Node(n, i, j));
+        final Node node = new Node(n, i, j);
+        if (node.validFactors())
         {
           generated.incrementAndGet();
           node.h = node.h(); // defer h() calc until necessary
@@ -492,13 +493,13 @@ public class Solver implements Runnable, Serializable
   private boolean goal(Node n) { return null == n ? null != goal() : (n.goal() && (goal.compareAndSet(null, n) || null != goal())); }
   public Node goal() { return goal.get(); }
 
-  private long generated() { return generated.get(); }
-  private long regenerated() { return regenerated.get(); }
-  private long ignored() { return ignored.get(); }
-  private long expanded() { return expanded.get(); }
-  private long maxDepth() { return maxDepthSoFar.get(); }
-  private long totalDepth() { return totalDepth.get(); }
-  private long avgDepth()
+  public long generated() { return generated.get(); }
+  public long regenerated() { return regenerated.get(); }
+  public long ignored() { return ignored.get(); }
+  public long expanded() { return expanded.get(); }
+  public long maxDepth() { return maxDepthSoFar.get(); }
+  public long totalDepth() { return totalDepth.get(); }
+  public long avgDepth()
   {
     final long expanded = expanded();
     return 0 != expanded ? totalDepth() / expanded : 0;

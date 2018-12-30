@@ -32,6 +32,21 @@ public class Test
    */
   private static Key key(int len)
   {
+    /*
+    StringBuilder sbP = new StringBuilder(len/2);
+    sbP.append('1');
+    for (int i = 1; i < (len/2)-1; ++i) sbP.append(random.nextBoolean() ? '1' : '0');
+    sbP.append('1');
+
+    StringBuilder sbQ = new StringBuilder(len);
+    sbQ.append('1');
+    for (int i = 1; i < (len/2)-1; ++i) sbQ.append(random.nextBoolean() ? '1' : '0');
+    sbQ.append('1');
+
+
+    final BigInteger p = new BigInteger(sbP.toString(), 2);
+    final BigInteger q = new BigInteger(sbQ.toString(), 2);
+    */
     final BigInteger p = BigInteger.probablePrime(len/2, random);
     final BigInteger q = BigInteger.probablePrime(len/2, random);
     final BigInteger s = p.multiply(q);
@@ -62,11 +77,12 @@ public class Test
          final PrintWriter csv = new PrintWriter(prefix + "heuristics.min-" + minLen + ".max-" + maxLen + ".repeat-" + repeat + ".csv"))
       {
         // init
-        Log.init(s -> { log.write(s); log.flush(); });
+        //Log.init(s -> { log.write(s); log.flush(); });
+        Log.disable();
         Solver.init(csv); Solver.callback((n) -> {});
 
         // run test for factors w/length i
-        for (int i = minLen; i < maxLen; ++i)
+        for (int i = minLen; i <= maxLen; ++i)
         {
           // repeat test j times
           for (int j = 0; j < repeat; ++j)
@@ -110,8 +126,7 @@ public class Test
    */
   private static int[] runs(BigInteger i)
   {
-    final int runs[] = new int[ i.bitLength() ];
-    for (int j = 0; j < runs.length; ++j) runs[j] = 0;
+    final int[] runs = new int[ i.bitLength() ];
 
     int cur = 0;
     for (int j = 0; j < runs.length; ++j)
@@ -139,19 +154,14 @@ public class Test
     try (final PrintWriter log = new PrintWriter(Test.prefix + "semiprimes.len-" + len + ".repeat-" + repeat + ".log");
          final PrintWriter csv = new PrintWriter(Test.prefix + "semiprimes.len-" + len + ".repeat-" + repeat + ".csv"))
     {
-      Log.init(log::write);
+      //Log.init(log::write);
+      Log.disable();
       double pLenSum = 0, pCountSum = 0, qLenSum = 0, qCountSum = 0, sLenSum = 0, sCountSum = 0;
 
       // table header in 2 rows:
 
       // 1) 3 header columns / value
-      for (int i = 0; i < 4; ++i) csv.write(",p,q,s,");
-      csv.write("p runs,");
-      for (int i = 0; i < (len/2)-1; ++i) csv.write(",");
-      csv.write("q runs,");
-      for (int i = 0; i < (len/2)-1; ++i) csv.write(",");
-      csv.write("s runs");
-      for (int i = 0; i < len-1; ++i) csv.write(","); // may be useful if we wish to add/change header later
+      for (int i = 0; i < 5; ++i) csv.write(",p,q,s");
       csv.write("\n");
 
       // 2) 3 statistic columns / value
@@ -166,9 +176,9 @@ public class Test
       for (int i = 1; i < len+1; ++i) csv.write("s " + i + ",");
       csv.write("\n");
 
-      final long pRuns[] = new long[len/2]; for (int i = 0; i < pRuns.length; ++i) pRuns[i] = 0;
-      final long qRuns[] = new long[len/2]; for (int i = 0; i < qRuns.length; ++i) qRuns[i] = 0;
-      final long sRuns[] = new long[len]; for (int i = 0; i < sRuns.length; ++i) sRuns[i] = 0;
+      final long[] pRuns = new long[len / 2];
+      final long[] qRuns = new long[len / 2];
+      final long[] sRuns = new long[len];
 
       // 3) write run stats
       for (int i = 0; i < repeat; ++i)
@@ -177,9 +187,9 @@ public class Test
         final Key key = key(len);
 
         // track number of identical consecutive set bits of each possible length in primes and their product
-        final int[] curPRuns = runs(key.p); int maxPRunIndex = curPRuns.length-1; for (int j = 1; j < curPRuns.length; ++j) { pRuns[j] += curPRuns[j]; if (curPRuns[j] > curPRuns[maxPRunIndex]) maxPRunIndex = j; }
-        final int[] curQRuns = runs(key.q); int maxQRunIndex = curQRuns.length-1; for (int j = 1; j < curQRuns.length; ++j) { qRuns[j] += curQRuns[j]; if (curQRuns[j] > curQRuns[maxQRunIndex]) maxQRunIndex = j; }
-        final int[] curSRuns = runs(key.s); int maxSRunIndex = curSRuns.length-1; for (int j = 1; j < curSRuns.length; ++j) { sRuns[j] += curSRuns[j]; if (curSRuns[j] > curSRuns[maxSRunIndex]) maxSRunIndex = j; }
+        final int[] curPRuns = runs(key.p); int maxPRunIndex = 0; for (int j = 1; j < curPRuns.length; ++j) { pRuns[j] += curPRuns[j]; if (curPRuns[j] > 0) maxPRunIndex = j; }
+        final int[] curQRuns = runs(key.q); int maxQRunIndex = 0; for (int j = 1; j < curQRuns.length; ++j) { qRuns[j] += curQRuns[j]; if (curQRuns[j] > 0) maxQRunIndex = j; }
+        final int[] curSRuns = runs(key.s); int maxSRunIndex = 0; for (int j = 1; j < curSRuns.length; ++j) { sRuns[j] += curSRuns[j]; if (curSRuns[j] > 0) maxSRunIndex = j; }
 
         // calculate some stats
         final double curPLen = key.p.bitLength(); pLenSum += curPLen;
@@ -228,7 +238,7 @@ public class Test
   public static void main(String[] args)
   {
     try { new File(testDir).mkdir(); } catch (Throwable ignored) {}
-    if (!semiprimes(1024, 100)) System.exit(1);
-    //if (!heuristics(20, 30, 10, Heuristic.values())) System.exit(2);
+    if (!semiprimes(1024, 1000)) System.exit(1);
+    //if (!heuristics(32, 32, 1000, Heuristic.values())) System.exit(2);
   }
 }

@@ -1,9 +1,6 @@
 package com.snd.semiprime;
 
-import java.util.Arrays;
 import java.util.function.BiFunction;
-import java.util.stream.DoubleStream;
-import java.util.stream.IntStream;
 
 /**
   * @author Stephen Dunn
@@ -13,6 +10,10 @@ public enum Heuristic
 {
   // template for an empty heuristic; commented to prevent adding to gui; you may safely uncomment for use from a commandline app
   //NONE("None", "Brute-force Search", (s,n) -> 0.0),
+
+  NONE("None", "", (s,n) -> 0.0),
+
+  RANDOM("Random", "", (s,n) -> Math.random()),
 
   DIST_EXPECTED_SEPARATE("Expected Distribution (separate)",
       "Calculate distribution difference from target.\nabs( sum(factor[i].bitCount() / factor[i].bitLength()) - (targetBitCount / targetBitLen) )",
