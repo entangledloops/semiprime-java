@@ -42,7 +42,7 @@ public class Solver implements Runnable, Serializable
   // state vars
   private static final AtomicBoolean networkSearch    = new AtomicBoolean(false); ///< true if and only if this search is hosted remotely
   private static final AtomicBoolean networkHost      = new AtomicBoolean(false); ///< true if and only if this is the search host
-  private static final AtomicBoolean detailedStats    = new AtomicBoolean(false); ///< if true---and at great expense---detailed stats will be recorded during search (debug)
+  private static final AtomicBoolean detailedStats    = new AtomicBoolean(false); ///< if true, detailed stats will be recorded during search (expensive, debug)
   private static final AtomicBoolean compressMemory   = new AtomicBoolean(false); ///< if true, will take additional steps to trade CPU for more memory
   private static final AtomicBoolean background       = new AtomicBoolean(false); ///< must wait until machine is idle before working
   private static final AtomicBoolean printAllNodes    = new AtomicBoolean(false); ///< if false, fewer sanity checks are performed on values

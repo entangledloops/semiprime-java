@@ -44,8 +44,6 @@ To run the client:
 
 **Linux / OS X:**
 
-`chmod +x gradlew`
-
 `./gradlew desktop:client`
 
 **Windows:**

@@ -73,7 +73,7 @@ public class Test
    */
   public static boolean heuristics(int minLen, int maxLen, int repeat, Heuristic... heuristics)
   {
-    try (final PrintWriter log = new PrintWriter(prefix + "heuristics.min-" + minLen + ".max-" + maxLen + ".repeat-" + repeat + ".log");
+    try (//final PrintWriter log = new PrintWriter(prefix + "heuristics.min-" + minLen + ".max-" + maxLen + ".repeat-" + repeat + ".log");
          final PrintWriter csv = new PrintWriter(prefix + "heuristics.min-" + minLen + ".max-" + maxLen + ".repeat-" + repeat + ".csv"))
       {
         // init
@@ -91,7 +91,7 @@ public class Test
             final Key key = key(i);
 
             // run all desired searches against target
-            for (Heuristic heuristic : Heuristic.values())
+            for (Heuristic heuristic : heuristics)
             {
               Solver.heuristics(heuristic); // set search heuristics
               new Solver(key.s).start().join(); // execute search
@@ -151,7 +151,7 @@ public class Test
    */
   public static boolean semiprimes(int len, int repeat)
   {
-    try (final PrintWriter log = new PrintWriter(Test.prefix + "semiprimes.len-" + len + ".repeat-" + repeat + ".log");
+    try (//final PrintWriter log = new PrintWriter(Test.prefix + "semiprimes.len-" + len + ".repeat-" + repeat + ".log");
          final PrintWriter csv = new PrintWriter(Test.prefix + "semiprimes.len-" + len + ".repeat-" + repeat + ".csv"))
     {
       //Log.init(log::write);
