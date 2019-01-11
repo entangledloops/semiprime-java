@@ -2,7 +2,7 @@ import java.math.BigInteger;
 import java.util.Random;
 
 public class HillClimber {
-    static final Random random = new Random(1);
+    static final Random rnd = new Random(1);
     BigInteger sp;
 
     public HillClimber(BigInteger sp)
@@ -16,8 +16,8 @@ public class HillClimber {
         StringBuilder p = new StringBuilder(len);
         StringBuilder q = new StringBuilder(len);
         for (int i = 0; i < len; ++i) {
-            p.append(i == 0 || i == len-1 || random.nextBoolean() ? '1' : '0');
-            q.append(i == 0 || i == len-1 || random.nextBoolean() ? '1' : '0');
+            p.append(i == 0 || i == len-1 || rnd.nextBoolean() ? '1' : '0');
+            q.append(i == 0 || i == len-1 || rnd.nextBoolean() ? '1' : '0');
         }
         return new Node(new BigInteger(p.toString(), 2), new BigInteger(q.toString(), 2));
     }
@@ -27,9 +27,9 @@ public class HillClimber {
         final boolean p = (n.p.bitCount() < n.q.bitCount()) == up;
         BigInteger c = p ? n.p : n.q;
 
-        int pos = 1 + random.nextInt(c.bitLength() - 2);
+        int pos = 1 + rnd.nextInt(c.bitLength() - 2);
         while (c.testBit(pos) == up) {
-            pos = 1 + random.nextInt(c.bitLength() - 2);
+            pos = 1 + rnd.nextInt(c.bitLength() - 2);
         }
 
         if (p) {
@@ -42,28 +42,35 @@ public class HillClimber {
     public Node solve()
     {
         Node n = randomNode();
+        Node bestNode = new Node(n);
         BigInteger dist = n.p.multiply(n.q).subtract(sp);
+        BigInteger bestDist = dist;
 
+        final int maxAttempts = sp.bitLength() / 2;
         int attempts = 0;
+        int restarts = 0;
+
+        System.out.println("targetLen: " + sp.bitLength() + ", maxAttempts: " + maxAttempts);
 
         while (!dist.equals(BigInteger.ZERO))
         {
-            if (attempts > 100) {
-                //System.out.println("restart");
+            if (attempts >= maxAttempts) {
+                ++restarts;
+                attempts = 0;
                 n = randomNode();
                 dist = n.p.multiply(n.q).subtract(sp);
             }
 
-            //System.out.println(n.toString() + " = " + dist);
-            final int cmp = dist.compareTo(BigInteger.ZERO);
-            if (0 == cmp) break;
-
-
-            Node next = new Node(new BigInteger(n.p.toString()), new BigInteger(n.q.toString()));
-            step(next, cmp < 0);
+            Node next = new Node(n);
+            step(next, dist.compareTo(BigInteger.ZERO) < 0);
             BigInteger nextDist = next.p.multiply(next.q).subtract(sp);
-            //System.out.println("next: " + next + " = " + nextDist);
+
             if (nextDist.abs().compareTo(dist.abs()) < 0) {
+                if (nextDist.abs().compareTo(bestDist.abs()) < 0) {
+                    bestNode = new Node(next);
+                    bestDist = nextDist;
+                    System.out.println(bestNode + " = " + bestNode.p.multiply(bestNode.q) + ", bestDist: " + bestDist.toString() + ", restarts: " + restarts);
+                }
                 attempts = 0;
                 n = next;
                 dist = nextDist;
@@ -71,6 +78,8 @@ public class HillClimber {
                 ++attempts;
             }
         }
+
+        System.out.println("restarts: " + restarts);
 
         return n;
     }
@@ -82,6 +91,10 @@ public class HillClimber {
             this.p = p;
             this.q = q;
         }
+        public Node(Node n) {
+            this.p = new BigInteger(n.p.toString());
+            this.q = new BigInteger(n.q.toString());
+        }
         @Override
         public String toString() {
             return p.toString(10) + " * " + q.toString(10);
@@ -90,7 +103,11 @@ public class HillClimber {
 
     public static void main(String[] args)
     {
-        BigInteger sp = BigInteger.probablePrime(32, random).multiply(BigInteger.probablePrime(32, random));
+        BigInteger p = BigInteger.probablePrime(128, rnd);
+        BigInteger q = BigInteger.probablePrime(128, rnd);
+        BigInteger sp = p.multiply(q);
+        System.out.println(p + " * " + q + " = " + sp);
+
         HillClimber hillClimber = new HillClimber(sp);
         Node soln = hillClimber.solve();
         System.out.println(soln + " = " + sp.toString(10));
