@@ -11,54 +11,13 @@ import java.util.Random;
  * @author Stephen Dunn
  * @since March 22, 2016
  */
-public class Test
+public class TestSolver
 {
   private final static int              seed   = 1;
   private final static Random           random = new Random(seed);
   private final static SimpleDateFormat format = new SimpleDateFormat("MM-dd-yyyy");
   private final static String           testDir = "test";
   private final static String           prefix = testDir + "/" + format.format(new Date()) + ".seed-" + seed + ".";
-
-  private static class Key
-  {
-    final BigInteger p, q, s;
-    Key(BigInteger p, BigInteger q, BigInteger s) { this.p = p; this.q = q; this.s = s; }
-  }
-
-  /**
-   * Generates a p,q,s set for a provided s len.
-   * @param len Length of the target semiprime product.
-   * @return An object containing p,q,s as BigIntegers.
-   */
-  private static Key key(int len)
-  {
-    /*
-    StringBuilder sbP = new StringBuilder(len/2);
-    sbP.append('1');
-    for (int i = 1; i < (len/2)-1; ++i) sbP.append(random.nextBoolean() ? '1' : '0');
-    sbP.append('1');
-
-    StringBuilder sbQ = new StringBuilder(len);
-    sbQ.append('1');
-    for (int i = 1; i < (len/2)-1; ++i) sbQ.append(random.nextBoolean() ? '1' : '0');
-    sbQ.append('1');
-
-
-    final BigInteger p = new BigInteger(sbP.toString(), 2);
-    final BigInteger q = new BigInteger(sbQ.toString(), 2);
-    */
-    final BigInteger p = BigInteger.probablePrime(len/2, random);
-    final BigInteger q = BigInteger.probablePrime(len/2, random);
-    final BigInteger s = p.multiply(q);
-
-    Log.o("[" +
-        "\np\n\n" + p.toString() + "\n\n" + p.toString(2) + "\n" +
-        "\nq\n\n" + q.toString() + "\n\n" + q.toString(2) + "\n" +
-        "\ns\n\n" + s.toString() + "\n\n" + s.toString(2) + "\n" +
-        "]\n");
-
-    return new Key(p, q, s);
-  }
 
   /**
    * Runs a battery of tests using each heuristic against semiprimes generated
@@ -88,7 +47,7 @@ public class Test
           for (int j = 0; j < repeat; ++j)
           {
             // prepare a new target
-            final Key key = key(i);
+            final Key key = new Key(i);
 
             // run all desired searches against target
             for (Heuristic heuristic : heuristics)
@@ -100,8 +59,6 @@ public class Test
             // release search memory, don't care about history
             Solver.release();
           }
-
-          csv.write( Solver.csvHeader() );
         }
 
         // cleanup
@@ -152,7 +109,7 @@ public class Test
   public static boolean semiprimes(int len, int repeat)
   {
     try (//final PrintWriter log = new PrintWriter(Test.prefix + "semiprimes.len-" + len + ".repeat-" + repeat + ".log");
-         final PrintWriter csv = new PrintWriter(Test.prefix + "semiprimes.len-" + len + ".repeat-" + repeat + ".csv"))
+         final PrintWriter csv = new PrintWriter(TestSolver.prefix + "semiprimes.len-" + len + ".repeat-" + repeat + ".csv"))
     {
       //Log.init(log::write);
       Log.disable();
@@ -184,7 +141,7 @@ public class Test
       for (int i = 0; i < repeat; ++i)
       {
         Log.o((1+i) + ":\n");
-        final Key key = key(len);
+        final Key key = new Key(len);
 
         // track number of identical consecutive set bits of each possible length in primes and their product
         final int[] curPRuns = runs(key.p); int maxPRunIndex = 0; for (int j = 1; j < curPRuns.length; ++j) { pRuns[j] += curPRuns[j]; if (curPRuns[j] > 0) maxPRunIndex = j; }
@@ -238,7 +195,10 @@ public class Test
   public static void main(String[] args)
   {
     try { new File(testDir).mkdir(); } catch (Throwable ignored) {}
-    if (!semiprimes(1024, 1000)) System.exit(1);
-    //if (!heuristics(32, 32, 1000, Heuristic.values())) System.exit(2);
+    //if (!semiprimes(1024, 1000)) System.exit(1);
+    long startTime = System.nanoTime();
+    if (!heuristics(80, 80, 1, Heuristic.values())) System.exit(2);
+    double elapsedMs = (System.nanoTime() - startTime) / 1e6;
+    System.out.println("elapsed: " + elapsedMs + "ms");
   }
 }

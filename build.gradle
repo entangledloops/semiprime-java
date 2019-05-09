@@ -54,7 +54,7 @@ allprojects {
     version = project.buildNumber + '.' + getDateTimeStamp()
     ext {
         appName = "semiprime"
-        gradleVersion = '3.0'
+        gradleVersion = '5.3'
         javaSourceVersion = '1.8'
         gdxVersion = '1.9.4'
         roboVMVersion = '2.2.0'

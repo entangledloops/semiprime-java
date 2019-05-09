@@ -408,7 +408,7 @@ public class Solver implements Runnable, Serializable
       for (int j = 0; j < cacheInternalBase; ++j)
       {
         if (i > j && n.identicalFactors()) continue;
-        
+
         //final Node node = close(new Node(n, i, j));
         final Node node = new Node(n, i, j);
         if (node.validFactors())
@@ -479,7 +479,7 @@ public class Solver implements Runnable, Serializable
         (detailed ? "\nopened: " + open.size() + "\nclosed: " + closed.size() : "") +
 
         "</center>"
-        
+
         ;
   }
 
@@ -614,7 +614,7 @@ public class Solver implements Runnable, Serializable
    * @author Stephen Dunn
    * @since October 31, 2015
    */
-  public class Node implements Comparable
+  public class Node implements Comparable<Node>
   {
     private final boolean identicalFactors;
     private final int     hashCode;
@@ -648,7 +648,7 @@ public class Solver implements Runnable, Serializable
 
     @Override public String toString() { return s + "<sub>10</sub>:" + s.toString(cacheInternalBase) + "<sub>" + cacheInternalBase + "</sub>:" + p + ":p:" + q + ":q:" + depth + ":depth:" + h  + ":h:" + hashCode + ":hash"; }
     @Override public boolean equals(Object o) { return o instanceof Node && ((Node) o).depth == depth && p.equals(((Node) o).p) && q.equals(((Node) o).q); }
-    @Override public int compareTo(Object o) { return Double.compare(h(), ((Node) o).h()); }
+    @Override public int compareTo(Node o) { return Double.compare(h(), o.h()); }
     @Override public int hashCode() { return hashCode; }
 
     String toCsv() { return generated + "," + ignored + "," + expanded + "," + open.size() + "," + closed.size() + "," + maxDepth() + "," + avgDepth() + "," + depth + "," + h + "," + hashCode + "," + s + "," + p + "," + q; }
